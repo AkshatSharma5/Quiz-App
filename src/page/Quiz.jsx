@@ -84,8 +84,8 @@ export default function Quiz() {
 
   useEffect(() => {
     if (lives <= 0) {
-      toast.error('You lost! Redirecting to home...');
-      toast.error('Wait for 3 mins. before playing!');
+      toast.error('You lost! 0 Lives Left!');
+      toast.error('Redirecting to home... Wait for 3 mins. before playing!');
       navigate('/');
     }
   }, [lives, navigate]);
@@ -128,7 +128,7 @@ export default function Quiz() {
       setScore(s => s - 1);
       setLives(l => l - 1);
       playWrong();
-      toast.error('Wrong Answer! 😐');
+      toast.error(`Wrong Answer! 😐`);
     }
 
     setTimeout(handleNextQuestion, 1500);
