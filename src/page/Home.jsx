@@ -72,7 +72,7 @@ export default function Home() {
                   <DialogDescription className="text-left space-y-3">
                     <ul className="list-disc list-inside space-y-2">
                       <li>5 Lives available - game over when they reach 0</li>
-                      <li>3 minute cooldown after game over</li>
+                      <li className="text-red-700">3 minute cooldown after game over</li>
                       <li>15 seconds per question limit</li>
                       <li>3 hints available throughout the quiz</li>
                       <li>Scoring:
