@@ -9,8 +9,8 @@ export default function Navbar() {
     <header className="flex items-center justify-between py-3 px-6 bg-gradient-to-r from-blue-300 via-fuchsia-200 to-purple-200 shadow-md border-b-4 border-purple-300">    
       <div className="flex items-center gap-2">
         <img src={icon} alt="Logo" className="w-8 h-8 text-md" />
-        <span className="text-xl font-semibold uppercase bg-gradient-to-r from-indigo-700 via-sky-600 to-purple-700 text-transparent bg-clip-text font-bioRhyme">
-  QuizUp: The Best Quizzing Platform
+        <span className="text-xl font-semibold uppercase bg-gradient-to-r from-indigo-700 via-sky-600 to-purple-700 text-transparent bg-clip-text font-spaceGrotesk tracking-wider">
+  QuizUp🚀 : The Best Quizzing Platform 
 </span>
  </div>
 
