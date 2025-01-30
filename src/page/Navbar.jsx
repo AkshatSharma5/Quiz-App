@@ -6,7 +6,7 @@ import icon from "../assets/icon.png"
 
 export default function Navbar() {
   return (
-    <header className="flex items-center justify-between py-3 px-6 bg-gradient-to-r from-blue-200 via-fuchsia-100 to-purple-100 shadow-md border-b-4 border-purple-700">    
+    <header className="flex items-center justify-between py-3 px-6 bg-gradient-to-r from-blue-300 via-fuchsia-200 to-purple-200 shadow-md border-b-4 border-purple-300">    
       <div className="flex items-center gap-2">
         <img src={icon} alt="Logo" className="w-8 h-8 text-md" />
         <span className="text-xl font-semibold uppercase bg-gradient-to-r from-indigo-700 via-sky-600 to-purple-700 text-transparent bg-clip-text font-bioRhyme">
@@ -15,14 +15,14 @@ export default function Navbar() {
  </div>
 
       {/* Center: Navigation Links */}
-      <nav className="flex items-center gap-6 text-lg font-medium">
+      <nav className="flex items-center gap-6 text-lg font-medium font-spaceGrotesk">
         <Link to="/" className="hover:text-blue-600">Home</Link>
         <span className="h-6 w-px bg-gray-500"></span> {/* Vertical Separator */}
         <Link to="/quiz" className="hover:text-blue-600">Quiz</Link>
       </nav>
 
       {/* Right: Social Links & Credit */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 font-spaceGrotesk">
         <a href="https://github.com/AkshatSharma5" target="_blank" rel="noopener noreferrer">
           <FaGithub className="w-6 h-6 hover:text-gray-800" />
         </a>

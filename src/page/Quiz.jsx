@@ -27,16 +27,22 @@ export default function Quiz() {
   const [playCorrect] = useSound('../assets/success.mp3');
   const [playWrong] = useSound('../assets/error.mp3');
 
-  // Load saved progress on initial mount
   useEffect(() => {
     const savedProgress = localStorage.getItem('quizProgress');
     if (savedProgress) {
-      const { quizData, currentQuestionIndex, score, lives, hintsRemaining } = JSON.parse(savedProgress);
-      setQuizData(quizData);
-      setCurrentQuestionIndex(currentQuestionIndex);
-      setScore(score);
-      setLives(lives);
-      setHintsRemaining(hintsRemaining);
+      const { quizData, currentQuestionIndex, score, lives, hintsRemaining, expiry } = JSON.parse(savedProgress);
+      const now = Date.now();
+
+      if (now > expiry) {
+        localStorage.removeItem('quizProgress');
+        fetchQuizData();
+      } else {
+        setQuizData(quizData);
+        setCurrentQuestionIndex(currentQuestionIndex);
+        setScore(score);
+        setLives(lives);
+        setHintsRemaining(hintsRemaining);
+      }
     } else {
       fetchQuizData();
     }
@@ -49,14 +55,14 @@ export default function Quiz() {
       const data = await res.json();
       const parsedData = JSON.parse(data.contents);
       setQuizData(parsedData.questions);
-      
-      // Initialize fresh progress
+
       localStorage.setItem('quizProgress', JSON.stringify({
         quizData: parsedData.questions,
         currentQuestionIndex: 0,
         score: 0,
         lives: 5,
-        hintsRemaining: 3
+        hintsRemaining: 3,
+        expiry: Date.now() + 3 * 60 * 1000 // Expires in 3 minutes
       }));
     } catch (err) {
       toast.error('Failed to load questions');
@@ -137,7 +143,6 @@ export default function Quiz() {
     }
   };
 
-  // Save progress whenever state changes
   useEffect(() => {
     if (quizData) {
       localStorage.setItem('quizProgress', JSON.stringify({
@@ -145,7 +150,8 @@ export default function Quiz() {
         currentQuestionIndex,
         score,
         lives,
-        hintsRemaining
+        hintsRemaining,
+        expiry: Date.now() + 3 * 60 * 1000 // Update expiry on every save
       }));
     }
   }, [currentQuestionIndex, score, lives, hintsRemaining, quizData]);
@@ -162,7 +168,7 @@ export default function Quiz() {
   }
 
   if (!quizData) return (
-    <div className="bg-gradient-to-r from-indigo-200 from-10% via-sky-100 via-30% to-emerald-100 to-90% min-h-screen p-8">
+    <div className="bg-gradient-to-r from-indigo-200 via-sky-100 to-emerald-100 min-h-screen p-8">
       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6">
         <Skeleton className="h-8 w-1/2 mb-6" />
         <div className="space-y-4">
@@ -176,10 +182,10 @@ export default function Quiz() {
   );
 
   return (
-    <div className="bg-gradient-to-r from-indigo-200 from-10% via-sky-100 via-30% to-emerald-100 to-90% min-h-screen p-8">
-      <Toaster position="top-right" />
+    <div className="bg-gradient-to-r from-indigo-200 from-10% via-sky-100 via-30% to-emerald-100 to-90% min-h-screen p-8 ">
+      <Toaster position="top-right" className="font-spaceGrotesk" />
       
-      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 mb-6">
+      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 mb-6 font-poppins">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 bg-red-100 px-4 py-2 rounded-lg">
@@ -198,7 +204,7 @@ export default function Quiz() {
           </div>
           
           <div className="space-y-2">
-            <div className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold">
+            <div className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold font-poppins">
               Score: {score}
             </div>
             <div className="text-sm text-gray-600">
@@ -213,8 +219,8 @@ export default function Quiz() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
-          <div className="flex gap-2 flex-wrap mb-4">
-            <span className="bg-blue-100 px-2 py-1 rounded text-sm">
+          <div className="flex gap-2 flex-wrap mb-4 font-poppins">
+            <span className="bg-blue-100 px-2 py-1 rounded text-sm ">
               Topic: {quizData[currentQuestionIndex].topic}
             </span>
             <span className="bg-green-100 px-2 py-1 rounded text-sm">
@@ -222,11 +228,11 @@ export default function Quiz() {
             </span>
           </div>
 
-          <h2 className="text-2xl font-semibold text-gray-800">
+          <h2 className="text-xl font-semibold text-gray-800 font-spaceGrotesk">
             {quizData[currentQuestionIndex].description}
           </h2>
           
-          <div className="grid gap-4">
+          <div className="grid gap-4 font-josefinSans">
             {quizData[currentQuestionIndex].options.map(option => (
               <button
                 key={option.id}
@@ -257,9 +263,9 @@ export default function Quiz() {
         <div className="max-w-3xl mx-auto flex justify-between items-center">
           <button
             onClick={() => setCurrentQuestionIndex(i => Math.max(0, i - 1))}
-            className="bg-gray-100 px-6 py-2 rounded-lg hover:bg-gray-200"
+            className="bg-sky-600 px-6 py-2 rounded-lg text-white font-bold hover:bg-sky-500"
           >
-            ← Previous
+            Previous ⬅️
           </button>
         </div>
       )}
