@@ -24,8 +24,8 @@ export default function Quiz() {
   const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
   const [startTime] = useState(Date.now());
   const [timeTaken, setTimeTaken] = useState(0);
-  const [playCorrect] = useSound('/sounds/correct.mp3');
-  const [playWrong] = useSound('/sounds/wrong.mp3');
+  const [playCorrect] = useSound('../assets/success.mp3');
+  const [playWrong] = useSound('../assets/error.mp3');
 
   // Load saved progress on initial mount
   useEffect(() => {

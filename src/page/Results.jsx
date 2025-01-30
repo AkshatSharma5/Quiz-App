@@ -10,7 +10,7 @@ export default function Results({ score, totalQuestions, correctAnswers, timeTak
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8">
+    <div className="max-w-2xl mx-auto bg-gradient-to-r from-indigo-200 from-10% via-sky-100 via-30% to-emerald-100 to-90% rounded-xl shadow-lg p-8">
       <h2 className="text-3xl font-bold text-center mb-8">Quiz Results</h2>
       
       <div className="grid md:grid-cols-2 gap-8">

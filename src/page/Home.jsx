@@ -19,7 +19,7 @@ export default function Home() {
       <div>
         <Toaster position="top-center" />
       </div>
-      <div className="border-2 border-[#0066ff6a] hover:border-[#17671c91] w-[50vw] h-[50vh] backdrop-blur-3xl flex justify-center bg-[#ffffff29] items-center rounded-xl hover:bg-[#7dc9d10b]">
+      <div className="border-2 border-[#0066ffa7] hover:border-[#17671ccf] w-[40vw] h-[50vh] backdrop-blur-3xl flex justify-center bg-[#ffffff6e] items-center rounded-xl hover:bg-[#a3e0e25a]">
         <div className="flex flex-col justify-center items-center gap-8">
           <div className="text-3xl underline underline-offset-8 font-bold text-gray-700">
             Start Quiz Now
