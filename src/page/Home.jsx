@@ -1,19 +1,21 @@
 import React, { useState } from "react";
 import { Typewriter } from "react-simple-typewriter";
 import { Toaster, toast } from "react-hot-toast";
-import confetti from 'canvas-confetti';
+import confetti from "canvas-confetti";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const confettiKaro = () => {
     confetti({
       particleCount: 100,
       spread: 50,
-      origin: { x:0.5, y:1 }
+      origin: { x: 0.5, y: 1 },
     });
     toast("Let's begin!", { icon: "🚀" });
   };
   return (
-    <div className="bg-gradient-to-r from-indigo-200 from-10% via-sky-100 via-30% to-emerald-100 to-90% h-[100vh] w-[100vw] flex flex-col items-center justify-center">
+    <div className="bg-gradient-to-r from-indigo-200 from-10% via-sky-100 via-30% to-emerald-100 to-90% h-[92vh] w-[100vw] flex flex-col items-center justify-center">
       <div>
         <Toaster position="top-center" />
       </div>
@@ -38,12 +40,14 @@ export default function Home() {
             />
           </div>
           <div>
-            <button
-              className="hover:scale-110 bg-blue-700 hover:bg-green-600 transition-all px-5 py-2 rounded-full text-white "
-              onClick={confettiKaro}
-            >
-              Go Now! 🚀
-            </button>
+            <Link to="/quiz">
+              <Button
+                className="hover:scale-110 bg-blue-700 hover:bg-green-600 transition-all px-5 py-2 rounded-full text-white "
+                onClick={confettiKaro}
+              >
+                Go Now! 🚀
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
