@@ -1,12 +1,16 @@
-import { Button } from "./components/ui/button";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./index.css";
 import Navbar from "./page/Navbar";
+import Home from "./page/Home";
 
 function App() {
   return (
-    <div className="bg-gradient-to-r from-indigo-200 from-10% via-sky-100 via-30% to-emerald-100 to-90% h-[100vh] w-[100vw]">
+    <BrowserRouter>
       <Navbar />
-    </div>
+      <Routes>
+        <Route path="/" element={<Home />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
