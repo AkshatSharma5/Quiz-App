@@ -4,6 +4,18 @@
 
 @layer base {
   :root {
-    --radius: 0.5rem
-  }
+    --radius: 0.5rem}
+}
+.prose {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+.prose code {
+  @apply bg-gray-200 px-1 rounded;
+}
+
+.prose pre {
+  @apply bg-gray-800 text-white p-4 rounded overflow-x-auto;
 }
