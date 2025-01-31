@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body {
+  overflow-x: hidden;
+}
+
 @layer base {
   :root {
     --radius: 0.5rem}
@@ -18,4 +22,24 @@
 
 .prose pre {
   @apply bg-gray-800 text-white p-4 rounded overflow-x-auto;
+}
+.prose pre::-webkit-scrollbar {
+  display: none;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: white;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1ec6cc;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background:rgb(28, 106, 208);
 }
