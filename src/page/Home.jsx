@@ -18,6 +18,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import chatbot from "../assets/chatbot.gif";
+import study from "../assets/study.gif";
 const genAI = new GoogleGenerativeAI("AIzaSyDa_ozTrifGMEkouc0KxaotWMSyE3IgiJU");
 
 export default function Home() {
@@ -160,6 +161,9 @@ export default function Home() {
                 deleteSpeed={50}
                 delaySpeed={1000}
               />
+            </div>
+            <div className="flex justify-center items-center">
+              <img src={study} alt="Study" className="" />
             </div>
             <div>
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
