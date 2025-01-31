@@ -13,6 +13,9 @@ export default function Navbar() {
           <span className="text-xl font-semibold uppercase bg-gradient-to-r from-indigo-700 via-sky-600 to-purple-700 text-transparent bg-clip-text font-spaceGrotesk tracking-wider">
             QuizUp🚀 : The Best Quizzing Platform
           </span>
+          <span className="font-semibold uppercase bg-gradient-to-r from-red-700 via-orange-600 to-pink-700 text-transparent bg-clip-text font-spaceGrotesk tracking-wider">
+            (AI-powered) ✨
+          </span>
         </div>
       </Link>
 
