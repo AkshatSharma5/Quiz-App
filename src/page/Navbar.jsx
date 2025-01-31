@@ -10,6 +10,17 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import Translate from "./Translate";
+Translate;
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 export default function Navbar() {
   return (
@@ -37,6 +48,20 @@ export default function Navbar() {
           <Link to="/quiz" className="hover:text-blue-600">
             Quiz
           </Link>
+          <span className="h-6 w-px bg-gray-500"></span>{" "}
+          <span>
+            <Dialog>
+              <DialogTrigger>Translate</DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle><Button>Translate:</Button></DialogTitle>
+                  <DialogDescription>
+                    <Translate />
+                  </DialogDescription>
+                </DialogHeader>
+              </DialogContent>
+            </Dialog>
+          </span>
         </nav>
 
         {/* Right: Social Links & Credit */}

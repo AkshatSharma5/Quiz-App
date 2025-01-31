@@ -4,6 +4,7 @@ import App from "./App.jsx";
 import "./index.css";
 import AnimatedCursor from "react-animated-cursor";
 
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <AnimatedCursor
