@@ -17,7 +17,7 @@ import {
   DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
+import chatbot from "../assets/chatbot.gif";
 const genAI = new GoogleGenerativeAI("AIzaSyDa_ozTrifGMEkouc0KxaotWMSyE3IgiJU");
 
 export default function Home() {
@@ -73,19 +73,22 @@ export default function Home() {
 
   return (
     <div className="relative h-[92vh] w-[100vw] flex flex-col items-center justify-center bg-gradient-to-r from-indigo-200 from-10% via-sky-100 via-30% to-emerald-100 to-90%">
-      <div className="absolute inset-0 bg-[url('../assets/bg1.jpg')] bg-cover bg-center opacity-10"></div>
       <Toaster position="top-center" />
 
       <div className="flex gap-8 w-full max-w-6xl px-4 z-10">
         {/* AI Chat Card */}
-        <div className="relative border-2 border-[#0066ffa7] hover:border-[#17671ccf] w-[40vw] h-[50vh] backdrop-blur-3xl bg-[#ffffff39] rounded-xl hover:bg-[#a3e0e220] flex flex-col">
+        <div className="relative py-2 border border-[#0000001f] w-[40vw] h-[70vh] backdrop-blur-3xl rounded-xl bg-[#a3e0e220] flex flex-col">
           <div className="p-6 flex flex-col flex-1">
             <div className="text-3xl underline underline-offset-8 font-bold bg-gradient-to-r from-indigo-700 via-sky-600 to-purple-700 text-transparent bg-clip-text mb-6 text-center">
               LEARN NOW
             </div>
-
+            {messages.length === 0 && (
+              <div className="flex justify-center items-center">
+                <img src={chatbot} alt="Welcome" className="w-[50%] h-[100%]" />
+              </div>
+            )}
             {/* Scrollable message area */}
-            <div className="flex-1 overflow-y-auto max-h-[300px] rounded-lg">
+            <div className="flex-1 overflow-y-auto max-h-[300px] rounded-lg mb-4 ">
               <ScrollArea className="flex-1">
                 <AnimatePresence>
                   {messages.map((message, index) => (
@@ -96,7 +99,7 @@ export default function Home() {
                       exit={{ opacity: 0 }}
                       className={`mb-3 p-3 rounded-lg max-w-[90%] ${
                         message.role === "user"
-                          ? "bg-blue-100 ml-auto"
+                          ? "bg-blue-200 ml-auto"
                           : "bg-gray-100 mr-auto"
                       }`}
                     >
@@ -137,19 +140,8 @@ export default function Home() {
             </form>
           </div>
         </div>
-
-        {/* Conditional GIF Display */}
-        {messages.length === 0 && (
-          <div className="flex justify-center items-center">
-            <img
-              src="path_to_your_gif.gif"
-              alt="Welcome"
-              className="w-64 h-64"
-            />
-          </div>
-        )}
         {/* Quiz Card */}
-        <div className="relative border-2 border-[#0066ffa7] hover:border-[#17671ccf] w-[40vw] h-[50vh] backdrop-blur-3xl bg-[#ffffff39] rounded-xl hover:bg-[#a3e0e220]">
+        <div className="relative border border-[#0000001f] w-[40vw] h-[70vh] backdrop-blur-3xl rounded-xl bg-[#a3e0e220] flex flex-col">
           <div className="flex flex-col justify-center items-center gap-8 h-full">
             <div className="text-3xl underline underline-offset-8 font-bold bg-gradient-to-r from-indigo-700 via-sky-600 to-purple-700 text-transparent bg-clip-text">
               Get set, it's quiz time!
