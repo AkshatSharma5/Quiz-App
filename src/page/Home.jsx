@@ -19,9 +19,10 @@ import {
 } from "@/components/ui/dialog";
 import chatbot from "../assets/chatbot.gif";
 import study from "../assets/study.gif";
-const genAI = new GoogleGenerativeAI("AIzaSyDa_ozTrifGMEkouc0KxaotWMSyE3IgiJU");
+const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
 export default function Home() {
+  console.log(import.meta.env.VITE_GEMINI_API_KEY);
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [messages, setMessages] = useState([]);
