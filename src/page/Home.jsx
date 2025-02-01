@@ -22,7 +22,7 @@ import study from "../assets/study.gif";
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
 export default function Home() {
-  console.log(import.meta.env.VITE_GEMINI_API_KEY);
+  console.log(import.meta.env.VITE_GEMINI_API_KEY); // use VIT_.... is imptt
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -74,12 +74,12 @@ export default function Home() {
   }, [messages]);
 
   return (
-    <div className="relative h-[92vh] w-[100vw] flex flex-col items-center justify-center bg-gradient-to-r from-indigo-200 from-10% via-sky-100 via-30% to-emerald-100 to-90%">
+    <div className="relative lg:h-[92vh] w-[100vw] flex flex-col items-center justify-center bg-gradient-to-r from-indigo-200 from-10% via-sky-100 via-30% to-emerald-100 to-90%">
       <Toaster position="top-center" />
-
-      <div className="flex gap-8 w-full max-w-6xl px-4 z-10">
+      
+      <div className="flex gap-8 w-full max-w-6xl px-4 z-10 flex-col md:flex-row">
         {/* AI Chat Card */}
-        <div className="relative py-2 border border-[#0000001f] w-[40vw] h-[70vh] backdrop-blur-3xl rounded-xl bg-[#a3e0e220] flex flex-col">
+        <div className="relative py-2 border border-[#0000001f] lg:w-[40vw] lg:h-[70vh] backdrop-blur-3xl rounded-xl bg-[#a3e0e220] flex flex-col mb-5 mt-10 lg:my-0 ">
           <div className="p-6 flex flex-col flex-1">
             <div className="text-3xl underline underline-offset-8 font-bold bg-gradient-to-r from-indigo-700 via-sky-600 to-purple-700 text-transparent bg-clip-text mb-6 text-center">
               LEARN NOW
@@ -143,7 +143,7 @@ export default function Home() {
           </div>
         </div>
         {/* Quiz Card */}
-        <div className="relative border border-[#0000001f] w-[40vw] h-[70vh] backdrop-blur-3xl rounded-xl bg-[#a3e0e220] flex flex-col">
+        <div className="relative py-2 border border-[#0000001f] md:w-[40vw] h-[70vh] backdrop-blur-3xl rounded-xl bg-[#a3e0e220] flex flex-col mt-5 mb-10 lg:my-0 ">
           <div className="flex flex-col justify-center items-center gap-8 h-full">
             <div className="text-3xl underline underline-offset-8 font-bold bg-gradient-to-r from-indigo-700 via-sky-600 to-purple-700 text-transparent bg-clip-text">
               Get set, it's quiz time!

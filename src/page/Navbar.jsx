@@ -25,18 +25,19 @@ import { Button } from "@/components/ui/button";
 export default function Navbar() {
   return (
     <TooltipProvider>
-      <header className="flex items-center justify-between py-3 px-6 bg-gradient-to-r from-blue-300 via-fuchsia-200 to-purple-200 shadow-md border-b-4 border-purple-300">
+      <header className="flex flex-col gap-5 lg:flex-row items-center justify-between py-3 px-6 bg-gradient-to-r from-blue-300 via-fuchsia-200 to-purple-200 shadow-md border-b-4 border-purple-300">
         <Link to="/">
           <div className="flex items-center gap-2">
             <img src={icon} alt="Logo" className="w-8 h-8 text-md" />
-            <span className="text-xl font-semibold uppercase bg-gradient-to-r from-indigo-700 via-sky-600 to-purple-700 text-transparent bg-clip-text font-spaceGrotesk tracking-wider">
-              QuizUp🚀 : The Best Quizzing Platform
+            <span className="lg:text-xl font-semibold uppercase bg-gradient-to-r from-indigo-700 via-sky-600 to-purple-700 text-transparent bg-clip-text font-spaceGrotesk tracking-wider">
+              QuizUp🚀 : The Best Quizzing Platform <br />
             </span>
             <span className="font-semibold uppercase bg-gradient-to-r from-red-700 via-orange-600 to-pink-700 text-transparent bg-clip-text font-spaceGrotesk tracking-wider">
               (AI-powered) ✨
             </span>
           </div>
         </Link>
+        
 
         {/* Center: Navigation Links */}
         <nav className="flex items-center gap-6 text-lg font-medium font-spaceGrotesk">
@@ -54,7 +55,9 @@ export default function Navbar() {
               <DialogTrigger>Translate</DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle><Button>Translate:</Button></DialogTitle>
+                  <DialogTitle>
+                    <Button>Translate:</Button>
+                  </DialogTitle>
                   <DialogDescription>
                     <Translate />
                   </DialogDescription>

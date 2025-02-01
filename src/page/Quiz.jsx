@@ -187,25 +187,25 @@ export default function Quiz() {
       <Toaster position="top-right" className="font-spaceGrotesk" />
       
       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 mb-6 font-poppins">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-6 md:flex-row flex-col">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-red-100 px-4 py-2 rounded-lg">
+            <div className=" bg-red-100 lg:px-4 lg:py-2 p-2 rounded-lg text-sm">
               ❤️ {lives}
             </div>
-            <div className="bg-blue-100 px-4 py-2 rounded-lg">
+            <div className="bg-blue-100 lg:px-4 lg:py-2 p-2 rounded-lg text-sm">
               ⏳ {timeLeft}s
             </div>
             <button 
               onClick={showHint}
-              className="bg-purple-100 px-4 py-2 rounded-lg hover:bg-purple-200"
+              className="bg-purple-100 lg:px-4 lg:py-2 p-2 rounded-lg hover:bg-purple-200 text-sm"
               disabled={hintsRemaining <= 0}
             >
               Hints: {hintsRemaining} 💡
             </button>
           </div>
           
-          <div className="space-y-2">
-            <div className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold font-poppins">
+          <div className="space-y-2 mt-5 lg:mt-0 text-sm">
+            <div className="bg-green-600 text-white lg:px-4 text-center lg:py-2 p-1 rounded-lg font-bold font-poppins text-sm">
               Score: {score}
             </div>
             <div className="text-sm text-gray-600">
@@ -229,16 +229,18 @@ export default function Quiz() {
             </span>
           </div>
 
-          <h2 className="text-xl font-semibold text-gray-800 font-spaceGrotesk">
+          <h2 className="text-[17px] md:text-xl font-semibold text-gray-800 font-spaceGrotesk animate__animated animate__bounceIn">
             {quizData[currentQuestionIndex].description}
           </h2>
           
-          <div className="grid gap-4 font-josefinSans">
+          <div className="grid gap-4 font-josefinSans text-sm md:text-md">
             {quizData[currentQuestionIndex].options.map(option => (
               <button
                 key={option.id}
                 onClick={() => handleAnswer(option)}
-                className={`p-4 rounded-lg text-left transition-all
+                className={`p-4 rounded-lg text-left animate__animated 
+                  animate__bounceIn
+                  transition-all
                   ${selectedOption === option.id 
                     ? option.is_correct 
                       ? 'bg-green-100 border-2 border-green-500' 
