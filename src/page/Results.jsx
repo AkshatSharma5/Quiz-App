@@ -50,8 +50,7 @@ export default function Results({
             </div>
           </div>
 
-          <div className="animate__animated 
-                  animate__bounceIn max-w-[250px] mx-auto my-10 lg:ml-40 lg:mt-[-1.5vw]">
+          <div className="max-w-[250px] mx-auto my-10 lg:ml-40 lg:mt-[-1.5vw]">
             <Doughnut data={data} />
           </div>
         </div>
