@@ -233,7 +233,7 @@ export default function Quiz() {
             {quizData[currentQuestionIndex].description}
           </h2>
           
-          <div className="grid gap-4 font-josefinSans text-sm md:text-md">
+          <div className="grid gap-4 font-josefinSans text-sm md:text-[16px]">
             {quizData[currentQuestionIndex].options.map(option => (
               <button
                 key={option.id}
