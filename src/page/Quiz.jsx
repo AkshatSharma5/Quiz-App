@@ -11,6 +11,13 @@ import Results from './Results';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
+// Helper function to decode HTML entities from OpenTDB strings
+function decodeHTML(html) {
+  const txt = document.createElement("textarea");
+  txt.innerHTML = html;
+  return txt.value;
+}
+
 export default function Quiz() {
   const navigate = useNavigate();
   const [quizData, setQuizData] = useState(null);
@@ -27,12 +34,12 @@ export default function Quiz() {
   const [playCorrect] = useSound('../assets/success.mp3');
   const [playWrong] = useSound('../assets/error.mp3');
 
+  // Load saved progress from localStorage (if any)
   useEffect(() => {
     const savedProgress = localStorage.getItem('quizProgress');
     if (savedProgress) {
       const { quizData, currentQuestionIndex, score, lives, hintsRemaining, expiry } = JSON.parse(savedProgress);
       const now = Date.now();
-
       if (now > expiry) {
         localStorage.removeItem('quizProgress');
         fetchQuizData();
@@ -46,18 +53,61 @@ export default function Quiz() {
     } else {
       fetchQuizData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Fetch quiz questions from OpenTDB and transform the data structure
   const fetchQuizData = async () => {
     try {
-      const res = await fetch('https://api.allorigins.win/get?url=' + 
-        encodeURIComponent('https://api.jsonserve.com/Uw5CrX'));
+      const res = await fetch('https://opentdb.com/api.php?amount=10&difficulty=medium');
       const data = await res.json();
-      const parsedData = JSON.parse(data.contents);
-      setQuizData(parsedData.questions);
+
+      // Check API response code; 0 means success.
+      if (data.response_code !== 0) {
+        throw new Error('API returned an error response');
+      }
+
+      // Transform each question from OpenTDB into the expected format.
+      const transformedData = data.results.map((q, index) => {
+        // Decode the HTML-encoded strings.
+        const questionText = decodeHTML(q.question);
+        const correctAnswer = decodeHTML(q.correct_answer);
+        const incorrectAnswers = q.incorrect_answers.map(ans => decodeHTML(ans));
+
+        // Map incorrect answers into option objects.
+        const incorrectOptions = incorrectAnswers.map((ans, idx) => ({
+          id: idx + 1,
+          description: ans,
+          is_correct: false
+        }));
+
+        // Create option object for the correct answer.
+        const correctOption = {
+          id: incorrectOptions.length + 1,
+          description: correctAnswer,
+          is_correct: true
+        };
+
+        // Combine and shuffle the options.
+        const options = [...incorrectOptions, correctOption];
+        for (let i = options.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [options[i], options[j]] = [options[j], options[i]];
+        }
+
+        return {
+          id: index,
+          topic: q.category,
+          difficulty_level: q.difficulty,
+          description: questionText,
+          options: options
+        };
+      });
+
+      setQuizData(transformedData);
 
       localStorage.setItem('quizProgress', JSON.stringify({
-        quizData: parsedData.questions,
+        quizData: transformedData,
         currentQuestionIndex: 0,
         score: 0,
         lives: 5,
@@ -70,6 +120,7 @@ export default function Quiz() {
     }
   };
 
+  // Handle transition to next question or completion of quiz
   const handleNextQuestion = useCallback(() => {
     if (currentQuestionIndex < quizData.length - 1) {
       setCurrentQuestionIndex(i => i + 1);
@@ -82,6 +133,7 @@ export default function Quiz() {
     }
   }, [currentQuestionIndex, quizData, startTime]);
 
+  // Redirect if lives run out
   useEffect(() => {
     if (lives <= 0) {
       toast.error('You lost! 0 Lives Left!');
@@ -90,6 +142,7 @@ export default function Quiz() {
     }
   }, [lives, navigate]);
 
+  // Timer countdown effect
   useEffect(() => {
     if (!quizData) return;
     
@@ -106,6 +159,7 @@ export default function Quiz() {
     return () => clearInterval(timer);
   }, [currentQuestionIndex, quizData, handleNextQuestion]);
 
+  // Handle answer selection and update score/lives accordingly
   const handleAnswer = (option) => {
     if (selectedOption) return;
     setSelectedOption(option.id);
@@ -128,12 +182,13 @@ export default function Quiz() {
       setScore(s => s - 1);
       setLives(l => l - 1);
       playWrong();
-      toast.error(`Wrong Answer! 😐`);
+      toast.error('Wrong Answer! 😐');
     }
 
     setTimeout(handleNextQuestion, 1500);
   };
 
+  // Provide a hint by showing the correct answer
   const showHint = () => {
     if (hintsRemaining > 0) {
       setHintsRemaining(h => h - 1);
@@ -144,6 +199,7 @@ export default function Quiz() {
     }
   };
 
+  // Save quiz progress to localStorage on every state change
   useEffect(() => {
     if (quizData) {
       localStorage.setItem('quizProgress', JSON.stringify({
@@ -157,6 +213,7 @@ export default function Quiz() {
     }
   }, [currentQuestionIndex, score, lives, hintsRemaining, quizData]);
 
+  // When quiz is completed, show the results screen.
   if (quizCompleted) {
     return (
       <Results 
@@ -168,6 +225,7 @@ export default function Quiz() {
     );
   }
 
+  // Show skeleton loader when quiz data is not loaded
   if (!quizData) return (
     <div className="bg-gradient-to-r from-indigo-200 via-sky-100 to-emerald-100 min-h-screen p-8">
       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6">
@@ -183,13 +241,13 @@ export default function Quiz() {
   );
 
   return (
-    <div className="bg-gradient-to-r from-indigo-200 from-10% via-sky-100 via-30% to-emerald-100 to-90% min-h-screen p-8 ">
+    <div className="bg-gradient-to-r from-indigo-200 from-10% via-sky-100 via-30% to-emerald-100 to-90% min-h-screen p-8">
       <Toaster position="top-right" className="font-spaceGrotesk" />
       
       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 mb-6 font-poppins">
         <div className="flex justify-between items-center mb-6 md:flex-row flex-col">
           <div className="flex items-center gap-4">
-            <div className=" bg-red-100 lg:px-4 lg:py-2 p-2 rounded-lg text-sm">
+            <div className="bg-red-100 lg:px-4 lg:py-2 p-2 rounded-lg text-sm">
               ❤️ {lives}
             </div>
             <div className="bg-blue-100 lg:px-4 lg:py-2 p-2 rounded-lg text-sm">
@@ -221,7 +279,7 @@ export default function Quiz() {
           className="space-y-6"
         >
           <div className="flex gap-2 flex-wrap mb-4 font-poppins">
-            <span className="bg-blue-100 px-2 py-1 rounded text-sm ">
+            <span className="bg-blue-100 px-2 py-1 rounded text-sm">
               Topic: {quizData[currentQuestionIndex].topic}
             </span>
             <span className="bg-green-100 px-2 py-1 rounded text-sm">
@@ -238,16 +296,13 @@ export default function Quiz() {
               <button
                 key={option.id}
                 onClick={() => handleAnswer(option)}
-                className={`p-4 rounded-lg text-left animate__animated 
-                  animate__bounceIn
-                  transition-all
+                className={`p-4 rounded-lg text-left animate__animated animate__bounceIn transition-all
                   ${selectedOption === option.id 
                     ? option.is_correct 
                       ? 'bg-green-100 border-2 border-green-500' 
                       : 'bg-red-100 border-2 border-red-500'
                     : 'bg-gray-50 hover:bg-blue-50'}
-                  ${selectedOption && option.is_correct 
-                    ? 'border-2 border-green-500' : ''}`}
+                  ${selectedOption && option.is_correct ? 'border-2 border-green-500' : ''}`}
                 disabled={selectedOption !== null}
               >
                 {option.description}
