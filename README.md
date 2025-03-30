@@ -73,7 +73,8 @@ AI Chatbot (Google Gemini)
 ![image](https://github.com/user-attachments/assets/684b25c9-d5c0-4a55-9f8f-3ecd26fd275b)
 Gamified Quiz
 ![image](https://github.com/user-attachments/assets/2561c2bf-cd76-4f50-acb9-90ae06707918)
-![image](https://github.com/user-attachments/assets/4c76ed59-9df1-4ca5-a192-23bf4b641551)
+![image](https://github.com/user-attachments/assets/b5f9d825-3aa6-4a50-9842-dbec2d808931)
+
 
 
 
