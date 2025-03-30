@@ -55,7 +55,7 @@ export default function Home() {
       const userMessage = { role: "user", content: input };
       setMessages((prev) => [...prev, userMessage]);
 
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-8b" });
       const result = await model.generateContent(input);
       const text = await result.response.text();
 
