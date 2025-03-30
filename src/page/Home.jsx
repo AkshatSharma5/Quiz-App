@@ -22,7 +22,6 @@ import study from "../assets/study.gif";
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
 export default function Home() {
-  console.log(import.meta.env.VITE_GEMINI_API_KEY); // use VIT_.... is imptt
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [messages, setMessages] = useState([]);
