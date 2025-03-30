@@ -23,16 +23,16 @@ Quiz App is a feature-rich application built with React and Vite that challenges
 - **Icons**: react-icons, lucide-react
 
 ## Installation ✨
-# 1. Clone the repository:
+### 1. Clone the repository:
 git clone https://github.com/AkshatSharma5/Quiz-App.git
 
-# 2. Navigate to the project directory:
+### 2. Navigate to the project directory:
 cd Quiz-App
 
-# 3. Install dependencies:
+### 3. Install dependencies:
 npm install
 
-# 4. Run the development server: 
+### 4. Run the development server: 
 npm run dev
 
 
