@@ -150,12 +150,10 @@ Start exploring AI-powered quizzes, flashcards, and personalized learning insigh
 
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/b797fb1e-77e9-44c4-aae9-7f8cb142373a" />
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ec64ccc0-19bb-4f51-8b58-7252882f907e" />
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/e569dafc-49db-4c4b-b048-3ea597fc9dda" />
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/65f66e00-2620-4f7c-9328-9fb9ac5afe4d" />
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ec97f6b2-4c58-4f2d-9809-4652f285af68" />
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/13f71be3-1f04-4eb1-b6a9-d29ec69ca3a6" />
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/db75448f-fc3a-4c9f-943f-e8d227a83403" />
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/7426f84a-25ee-42f5-9133-438d09d32c71" />
 
 
 ---
@@ -170,11 +168,3 @@ Contributions are welcome!
 4. Submit a pull request
 
 ---
-
-## Author ✍️
-
-**Akshat Sharma**
-
----
-
-🎯 *Making learning smarter with AI.*
