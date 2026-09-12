@@ -70,9 +70,9 @@ export default function DailyChallenge() {
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl p-6 animate-pulse">
-        <div className="h-6 bg-white/20 rounded w-1/2 mb-3"></div>
-        <div className="h-4 bg-white/20 rounded w-3/4"></div>
+      <div className="glass-panel rounded-2xl p-6 animate-pulse">
+        <div className="h-6 bg-[var(--border-color)] rounded w-1/2 mb-3"></div>
+        <div className="h-4 bg-[var(--border-color)] rounded w-3/4"></div>
       </div>
     );
   }
@@ -82,44 +82,44 @@ export default function DailyChallenge() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.02 }}
-      className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl p-6 text-white shadow-xl relative overflow-hidden"
+      className="glass-panel rounded-2xl p-8 shadow-xl relative overflow-hidden"
     >
-      {/* Decorative elements */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-      <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
+      <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-2">
+            <FaStar className="text-[#00A63E] dark:text-[#39FF14] text-2xl" />
+            <h3 className="text-2xl font-bold tracking-tight text-[var(--text-main)]">Daily Challenge</h3>
+          </div>
 
-      <div className="relative z-10">
-        <div className="flex items-center gap-2 mb-2">
-          <FaStar className="text-yellow-300 text-xl" />
-          <h3 className="text-xl font-bold">Daily Challenge</h3>
+          <p className="text-[var(--text-muted)] font-medium mb-4 text-base">
+            Complete the daily challenge for bonus XP and streak points!
+          </p>
+
+          {challengeCompleted ? (
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg px-4 py-2 font-medium">
+                <FaLock className="text-[var(--text-muted)]" />
+                <span>Completed today! 🎉</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-medium">
+                <FaClock />
+                <span>New challenge in: {timeUntilReset}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-4 text-sm font-bold">
+              <span className="bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)] px-4 py-1.5 rounded-full">+50 XP</span>
+              <span className="bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)] px-4 py-1.5 rounded-full">+🔥 Streak</span>
+              <span className="bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)] px-4 py-1.5 rounded-full">10 Questions</span>
+            </div>
+          )}
         </div>
 
-        <p className="text-white/80 mb-4 text-sm">
-          Complete the daily challenge for bonus XP and streak points!
-        </p>
-
-        {challengeCompleted ? (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 bg-white/20 rounded-lg p-3">
-              <FaLock className="text-white/60" />
-              <span>Challenge completed today! 🎉</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-white/70">
-              <FaClock />
-              <span>New challenge in: {timeUntilReset}</span>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="flex items-center gap-4 text-sm">
-              <span className="bg-white/20 px-3 py-1 rounded-full">+50 XP</span>
-              <span className="bg-white/20 px-3 py-1 rounded-full">+🔥 Streak</span>
-              <span className="bg-white/20 px-3 py-1 rounded-full">10 Questions</span>
-            </div>
-            
+        {!challengeCompleted && (
+          <div className="w-full md:w-auto mt-4 md:mt-0">
             <Button
               onClick={user ? startDailyChallenge : () => navigate('/login')}
-              className="w-full bg-white text-indigo-600 hover:bg-white/90 font-semibold"
+              className="w-full md:w-auto btn-primary px-8 py-4 text-base h-auto"
             >
               {user ? 'Start Challenge' : 'Sign in to Play'}
             </Button>

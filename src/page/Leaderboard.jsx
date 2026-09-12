@@ -69,13 +69,13 @@ export default function Leaderboard() {
   const getRankStyle = (rank) => {
     switch (rank) {
       case 1:
-        return 'bg-gradient-to-r from-yellow-100 to-amber-100 border-yellow-300';
+        return 'glass-panel border-[#FFD700] shadow-[0_0_15px_rgba(255,215,0,0.2)]';
       case 2:
-        return 'bg-gradient-to-r from-gray-100 to-slate-100 border-gray-300';
+        return 'glass-panel border-[#C0C0C0] shadow-[0_0_10px_rgba(192,192,192,0.2)]';
       case 3:
-        return 'bg-gradient-to-r from-amber-50 to-orange-50 border-amber-300';
+        return 'glass-panel border-[#CD7F32] shadow-[0_0_10px_rgba(205,127,50,0.2)]';
       default:
-        return 'bg-white/60 border-gray-200';
+        return 'glass-panel border-[var(--border-color)]';
     }
   };
 
@@ -93,17 +93,17 @@ export default function Leaderboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-200 via-purple-100 to-pink-100 p-4 md:p-8">
+    <div className="min-h-screen p-4 md:p-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-w-3xl mx-auto"
       >
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-yellow-600 via-orange-500 to-red-500 text-transparent bg-clip-text mb-2">
+          <h1 className="text-4xl font-black text-[var(--text-main)] mb-2">
             🏆 Leaderboard
           </h1>
-          <p className="text-gray-600">See how you stack up against other players!</p>
+          <p className="text-[var(--text-muted)] font-medium">See how you stack up against other players!</p>
         </div>
 
         {/* Filters */}
@@ -114,8 +114,8 @@ export default function Leaderboard() {
               onClick={() => setFilter(f.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all ${
                 filter === f.id
-                  ? 'bg-indigo-600 text-white shadow-lg'
-                  : 'bg-white/70 text-gray-600 hover:bg-white'
+                  ? 'btn-primary'
+                  : 'btn-secondary'
               }`}
             >
               {f.icon}
@@ -129,28 +129,28 @@ export default function Leaderboard() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-4 mb-6 text-white shadow-xl"
+            className="glass-panel border-l-4 border-l-[#00A63E] rounded-xl p-4 mb-6 shadow-xl"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-xl font-bold">
+                <div className="w-12 h-12 rounded-full bg-[var(--bg-base)] flex items-center justify-center text-xl font-bold border border-[#00A63E]">
                   {userProfile.displayName?.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <div className="font-bold">{userProfile.displayName}</div>
-                  <div className="text-white/80 text-sm">Your Rank</div>
+                  <div className="font-bold text-[var(--text-main)]">{userProfile.displayName}</div>
+                  <div className="text-[var(--text-muted)] text-sm">Your Rank</div>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-3xl font-bold">#{userRank}</div>
-                <div className="text-white/80 text-sm">{getFilterValue(userProfile)}</div>
+                <div className="text-3xl font-bold text-[#00A63E] dark:text-[#39FF14]">#{userRank}</div>
+                <div className="text-[var(--text-muted)] text-sm font-semibold">{getFilterValue(userProfile)}</div>
               </div>
             </div>
           </motion.div>
         )}
 
         {/* Leaderboard List */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-4 md:p-6 border border-white/20">
+        <div className="glass-panel rounded-2xl p-4 md:p-6 mb-12">
           {loading ? (
             <div className="space-y-4">
               {[...Array(10)].map((_, i) => (
@@ -165,9 +165,9 @@ export default function Leaderboard() {
               ))}
             </div>
           ) : leaders.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-[var(--text-muted)]">
               <FaTrophy className="text-5xl mx-auto mb-4 opacity-30" />
-              <p>No players on the leaderboard yet.</p>
+              <p className="font-medium">No players on the leaderboard yet.</p>
               <p className="text-sm">Be the first to play!</p>
             </div>
           ) : (
@@ -182,9 +182,9 @@ export default function Leaderboard() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-all ${
+                    className={`flex items-center gap-4 p-4 rounded-xl border-l-[6px] transition-all ${
                       getRankStyle(rank)
-                    } ${isCurrentUser ? 'ring-2 ring-indigo-500' : ''}`}
+                    } ${isCurrentUser ? 'ring-2 ring-[#00A63E]' : ''}`}
                   >
                     {/* Rank */}
                     <div className="w-10 flex justify-center">
@@ -211,22 +211,22 @@ export default function Leaderboard() {
 
                     {/* Name & Level */}
                     <div className="flex-1">
-                      <div className="font-semibold text-gray-800 flex items-center gap-2">
+                      <div className="font-bold text-[var(--text-main)] flex items-center gap-2">
                         {leader.displayName}
                         {isCurrentUser && (
-                          <span className="text-xs bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full">
+                          <span className="text-xs bg-[#00A63E]/20 text-[#00A63E] dark:text-[#39FF14] px-2 py-0.5 rounded-full">
                             You
                           </span>
                         )}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-[var(--text-muted)] font-medium mt-1">
                         Level {leader.level || 1} • {leader.totalQuizzes || 0} quizzes
                       </div>
                     </div>
 
                     {/* Score */}
                     <div className="text-right">
-                      <div className="text-xl font-bold text-gray-800">
+                      <div className="text-xl font-black text-[var(--text-main)]">
                         {getFilterValue(leader)}
                       </div>
                     </div>

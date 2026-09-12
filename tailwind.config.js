@@ -41,7 +41,13 @@ export default {
   				'sans-serif'
   			]
   		},
-  		colors: {}
+  		colors: {
+  			'neon-green': '#39FF14',
+  			'forest-green': '#00A63E',
+  			'faded-white': '#F9F9F9',
+  			'pure-black': '#000000',
+  			'dark-gray': '#111111',
+  		}
   	}
   },
   plugins: [require("tailwindcss-animate")],

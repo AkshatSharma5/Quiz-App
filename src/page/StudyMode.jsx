@@ -184,7 +184,7 @@ export default function StudyMode() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-200 via-purple-100 to-pink-100 p-4 md:p-8">
+    <div className="min-h-screen p-4 md:p-8">
       <Toaster position="top-center" />
       
       <motion.div
@@ -196,7 +196,7 @@ export default function StudyMode() {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-transparent bg-clip-text mb-2">
             🧠 Study Mode
           </h1>
-          <p className="text-gray-600">AI-powered flashcards for effective learning</p>
+          <p className="text-[var(--text-muted)] font-medium">AI-powered flashcards for effective learning</p>
         </div>
 
         {flashcards.length === 0 ? (
@@ -204,19 +204,19 @@ export default function StudyMode() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/20"
+            className="glass-panel rounded-2xl p-8"
           >
-            <h2 className="text-xl font-semibold mb-6 text-center">Choose a topic to study</h2>
+            <h2 className="text-xl font-bold mb-6 text-center text-[var(--text-main)]">Choose a topic to study</h2>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
               {QUIZ_CATEGORIES.filter(c => c.id !== 0).slice(0, 12).map((category) => (
                 <button
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
-                  className={`p-4 rounded-xl text-center transition-all ${
+                  className={`p-4 rounded-xl text-center transition-all border ${
                     selectedCategory === category.id
-                      ? 'bg-indigo-500 text-white shadow-lg scale-105'
-                      : 'bg-gray-50 hover:bg-indigo-50'
+                      ? 'bg-indigo-500 border-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.5)] scale-105'
+                      : 'bg-[var(--bg-base)] border-[var(--border-color)] text-[var(--text-main)] hover:bg-[var(--bg-surface)] hover:shadow-[0_0_10px_rgba(255,255,255,0.1)]'
                   }`}
                 >
                   <span className="text-2xl block mb-1">{category.icon}</span>
@@ -228,7 +228,7 @@ export default function StudyMode() {
             <Button
               onClick={generateFlashcards}
               disabled={generating}
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 py-4 text-lg"
+              className="w-full btn-primary py-6 text-lg font-black tracking-wide"
             >
               {generating ? (
                 <>Generating flashcards with AI...</>
@@ -244,20 +244,20 @@ export default function StudyMode() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-8 text-center border border-white/20"
+            className="glass-panel rounded-2xl p-8 text-center"
           >
             <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">Study Complete!</h2>
-            <p className="text-gray-600 mb-6">
+            <h2 className="text-3xl font-black text-[var(--text-main)] mb-2">Study Complete!</h2>
+            <p className="text-[var(--text-muted)] font-medium mb-6">
               You've learned all {flashcards.length} flashcards!
             </p>
             <div className="flex justify-center gap-4">
-              <Button onClick={resetStudy} variant="outline">
+              <Button onClick={resetStudy} className="btn-secondary">
                 <FaRedo className="mr-2" /> Study Again
               </Button>
               <Button 
                 onClick={() => setFlashcards([])}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600"
+                className="btn-primary"
               >
                 New Topic
               </Button>
@@ -267,16 +267,16 @@ export default function StudyMode() {
           // Flashcard Study View
           <div className="space-y-6">
             {/* Progress Bar */}
-            <div className="bg-white/80 backdrop-blur-xl rounded-xl shadow p-4 border border-white/20">
-              <div className="flex justify-between text-sm text-gray-600 mb-2">
+            <div className="glass-panel rounded-xl p-4">
+              <div className="flex justify-between text-sm text-[var(--text-muted)] font-bold uppercase tracking-wider mb-2">
                 <span>Progress</span>
                 <span>{knownCards.size}/{flashcards.length} learned</span>
               </div>
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-3 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-full overflow-hidden shadow-inner">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${(knownCards.size / flashcards.length) * 100}%` }}
-                  className="h-full bg-gradient-to-r from-green-400 to-emerald-500"
+                  className="h-full bg-[#00A63E] shadow-[0_0_10px_rgba(0,166,62,0.8)]"
                 />
               </div>
             </div>
@@ -293,11 +293,11 @@ export default function StudyMode() {
                   animate={{ rotateY: 0, opacity: 1 }}
                   exit={{ rotateY: isFlipped ? 90 : -90, opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  className={`absolute inset-0 bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl p-8 border-2 flex flex-col items-center justify-center ${
-                    isFlipped ? 'border-green-300' : 'border-indigo-300'
+                  className={`absolute inset-0 glass-panel rounded-2xl p-8 border-2 flex flex-col items-center justify-center ${
+                    isFlipped ? 'border-[#00A63E] shadow-[0_0_15px_rgba(0,166,62,0.2)]' : 'border-[#39FF14] shadow-[0_0_15px_rgba(57,255,20,0.1)]'
                   } ${knownCards.has(currentIndex) ? 'opacity-50' : ''}`}
                 >
-                  <div className="absolute top-4 left-4 text-sm text-gray-400">
+                  <div className="absolute top-4 left-4 text-sm font-bold text-[var(--text-muted)]">
                     Card {currentIndex + 1}/{flashcards.length}
                   </div>
                   <div className="absolute top-4 right-4 text-sm">
@@ -305,8 +305,8 @@ export default function StudyMode() {
                   </div>
                   
                   <div className="text-center">
-                    <p className="text-xs text-gray-400 mb-2">{isFlipped ? 'ANSWER' : 'QUESTION'}</p>
-                    <p className="text-xl md:text-2xl font-medium text-gray-800">
+                    <p className="text-xs font-bold text-[var(--text-muted)] tracking-widest mb-2">{isFlipped ? 'ANSWER' : 'QUESTION'}</p>
+                    <p className="text-xl md:text-2xl font-black text-[var(--text-main)]">
                       {isFlipped 
                         ? flashcards[currentIndex]?.back 
                         : flashcards[currentIndex]?.front
@@ -314,7 +314,7 @@ export default function StudyMode() {
                     </p>
                   </div>
 
-                  <p className="absolute bottom-4 text-sm text-gray-400">
+                  <p className="absolute bottom-4 text-sm font-bold text-[var(--text-muted)]">
                     {isFlipped ? 'Click to see question' : 'Click to reveal answer'}
                   </p>
                 </motion.div>
@@ -323,7 +323,7 @@ export default function StudyMode() {
 
             {/* Controls */}
             <div className="flex justify-center gap-4">
-              <Button onClick={prevCard} variant="outline" className="px-6">
+              <Button onClick={prevCard} className="btn-secondary px-6">
                 <FaArrowLeft className="mr-2" /> Previous
               </Button>
               
@@ -331,21 +331,20 @@ export default function StudyMode() {
                 <>
                   <Button 
                     onClick={markAsUnknown} 
-                    variant="outline" 
-                    className="px-6 text-red-600 border-red-200 hover:bg-red-50"
+                    className="btn-secondary px-6 text-red-500 border-red-500/20 hover:bg-red-500/10"
                   >
                     <FaTimes className="mr-2" /> Still Learning
                   </Button>
                   <Button 
                     onClick={markAsKnown}
-                    className="px-6 bg-green-500 hover:bg-green-600"
+                    className="px-6 bg-[#00A63E] text-[var(--bg-base)] hover:bg-[#39FF14] transition-colors shadow-[0_0_10px_rgba(0,166,62,0.3)] border-none"
                   >
                     <FaCheck className="mr-2" /> Got It!
                   </Button>
                 </>
               )}
 
-              <Button onClick={nextCard} variant="outline" className="px-6">
+              <Button onClick={nextCard} className="btn-secondary px-6">
                 Next <FaArrowRight className="ml-2" />
               </Button>
             </div>
@@ -355,8 +354,7 @@ export default function StudyMode() {
               <div className="mt-4">
                 <Button
                   onClick={getAIExplanation}
-                  variant="outline"
-                  className="w-full"
+                  className="btn-secondary w-full"
                   disabled={loadingExplanation}
                 >
                   <FaLightbulb className="mr-2 text-yellow-500" />
@@ -367,15 +365,15 @@ export default function StudyMode() {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-6 border border-yellow-200"
+                    className="mt-4 glass-panel border-t-4 border-[#F59E0B] rounded-xl p-6 shadow-[0_0_15px_rgba(245,158,11,0.1)]"
                   >
-                    <h3 className="font-semibold text-yellow-800 mb-2 flex items-center gap-2">
-                      <FaLightbulb className="text-yellow-500" /> AI Explanation
+                    <h3 className="font-bold text-yellow-500 mb-3 flex items-center gap-2">
+                      <FaLightbulb /> AI Explanation
                     </h3>
                     {loadingExplanation ? (
-                      <Skeleton className="h-24" />
+                      <Skeleton className="h-24 bg-[var(--bg-surface)]" />
                     ) : (
-                      <div className="prose prose-sm text-gray-700">
+                      <div className="prose prose-sm text-[var(--text-main)] prose-invert">
                         <ReactMarkdown>{explanation}</ReactMarkdown>
                       </div>
                     )}
@@ -385,17 +383,17 @@ export default function StudyMode() {
             )}
 
             {/* Quick Actions */}
-            <div className="flex justify-center gap-2 mt-4">
+            <div className="flex justify-center gap-4 mt-6">
               <Button
                 onClick={() => setFlashcards([])}
-                variant="outline"
+                className="btn-secondary"
                 size="sm"
               >
                 Change Topic
               </Button>
               <Button
                 onClick={resetStudy}
-                variant="outline"
+                className="btn-secondary"
                 size="sm"
               >
                 <FaRedo className="mr-1" /> Reset Progress

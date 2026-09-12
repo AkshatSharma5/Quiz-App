@@ -71,7 +71,7 @@ export default function Profile() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-200 via-purple-100 to-pink-100 p-4 md:p-8">
+    <div className="min-h-screen p-4 md:p-8">
       <Toaster position="top-center" />
       
       <motion.div
@@ -80,7 +80,7 @@ export default function Profile() {
         className="max-w-4xl mx-auto"
       >
         {/* Profile Header */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-6 md:p-8 border border-white/20 mb-6">
+        <div className="glass-panel rounded-2xl p-6 md:p-8 mb-6">
           <div className="flex flex-col md:flex-row items-center gap-6">
             {/* Avatar */}
             <div className="relative">
@@ -119,27 +119,27 @@ export default function Profile() {
                 </div>
               ) : (
                 <div className="flex items-center gap-2 justify-center md:justify-start">
-                  <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+                  <h1 className="text-2xl md:text-3xl font-black text-[var(--text-main)]">
                     {userProfile.displayName}
                   </h1>
-                  <button onClick={() => setIsEditing(true)} className="text-gray-400 hover:text-gray-600">
+                  <button onClick={() => setIsEditing(true)} className="text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">
                     <FaEdit />
                   </button>
                 </div>
               )}
-              <p className="text-gray-500">{userProfile.email}</p>
+              <p className="text-[var(--text-muted)] font-medium mt-1">{userProfile.email}</p>
               
               {/* XP Bar */}
               <div className="mt-4">
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-indigo-600 font-semibold">{userProfile.xp} XP</span>
-                  <span className="text-gray-500">{nextLevelXP} XP to Level {userProfile.level + 1}</span>
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="text-[#00A63E] dark:text-[#39FF14] font-bold">{userProfile.xp} XP</span>
+                  <span className="text-[var(--text-muted)] font-medium">{nextLevelXP} XP to Level {userProfile.level + 1}</span>
                 </div>
-                <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                <div className="h-3 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-full overflow-hidden shadow-inner">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${xpProgress}%` }}
-                    className="h-full bg-gradient-to-r from-indigo-500 to-purple-600"
+                    className="h-full bg-[#00A63E]"
                   />
                 </div>
               </div>
@@ -148,8 +148,7 @@ export default function Profile() {
             {/* Logout Button */}
             <Button
               onClick={handleLogout}
-              variant="outline"
-              className="flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50"
+              className="btn-secondary flex items-center gap-2 text-red-500 hover:bg-red-500/10 border-red-500/20"
             >
               <FaSignOutAlt />
               Logout
@@ -165,42 +164,42 @@ export default function Profile() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white/80 backdrop-blur-xl rounded-xl p-4 shadow-lg border border-white/20"
+              className="glass-panel rounded-xl p-5"
             >
-              <div className={`text-2xl mb-2 ${stat.color}`}>{stat.icon}</div>
-              <div className="text-2xl font-bold text-gray-800">{stat.value}</div>
-              <div className="text-sm text-gray-500">{stat.label}</div>
+              <div className={`text-3xl mb-3 ${stat.color}`}>{stat.icon}</div>
+              <div className="text-2xl font-black text-[var(--text-main)] mb-1">{stat.value}</div>
+              <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">{stat.label}</div>
             </motion.div>
           ))}
         </div>
 
         {/* Achievements Section */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-6 border border-white/20">
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+        <div className="glass-panel rounded-2xl p-6 md:p-8">
+          <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-[var(--text-main)]">
             <FaTrophy className="text-yellow-500" />
             Achievements ({unlockedAchievements.length}/{ACHIEVEMENTS.filter(a => a.condition).length})
           </h2>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {ACHIEVEMENTS.filter(a => a.condition).map((achievement) => {
               const isUnlocked = achievement.condition(userProfile);
               return (
                 <motion.div
                   key={achievement.id}
                   whileHover={{ scale: 1.05 }}
-                  className={`p-4 rounded-xl text-center transition-all ${
+                  className={`p-5 rounded-2xl text-center transition-all ${
                     isUnlocked
-                      ? 'bg-gradient-to-br from-yellow-100 to-orange-100 shadow-lg'
-                      : 'bg-gray-100 opacity-50'
+                      ? 'glass-panel border-[#FFD700] shadow-[0_0_15px_rgba(255,215,0,0.15)]'
+                      : 'bg-[var(--bg-base)] border border-[var(--border-color)] opacity-50'
                   }`}
                 >
-                  <div className="text-3xl mb-2">{achievement.icon}</div>
-                  <div className={`font-semibold text-sm ${isUnlocked ? 'text-gray-800' : 'text-gray-500'}`}>
+                  <div className={`text-4xl mb-3 flex justify-center ${isUnlocked ? 'text-[#FFD700] drop-shadow-[0_0_10px_rgba(255,215,0,0.5)]' : 'grayscale'}`}>{achievement.icon}</div>
+                  <div className={`font-bold text-sm mb-1 ${isUnlocked ? 'text-[var(--text-main)]' : 'text-[var(--text-muted)]'}`}>
                     {achievement.name}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">{achievement.description}</div>
+                  <div className="text-xs font-medium text-[var(--text-muted)] leading-tight">{achievement.description}</div>
                   {isUnlocked && (
-                    <div className="text-xs text-green-600 font-semibold mt-2">
+                    <div className="text-xs text-[#00A63E] dark:text-[#39FF14] font-bold mt-3 bg-[#00A63E]/10 py-1 rounded-full">
                       +{achievement.xp} XP
                     </div>
                   )}
@@ -211,22 +210,22 @@ export default function Profile() {
         </div>
 
         {/* Quick Actions */}
-        <div className="mt-6 flex flex-wrap justify-center gap-4">
+        <div className="mt-8 flex flex-wrap justify-center gap-4">
           <Button
             onClick={() => navigate('/quiz-setup')}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+            className="btn-primary"
           >
             🎮 Start Quiz
           </Button>
           <Button
             onClick={() => navigate('/leaderboard')}
-            variant="outline"
+            className="btn-secondary"
           >
             🏆 Leaderboard
           </Button>
           <Button
             onClick={() => navigate('/analytics')}
-            variant="outline"
+            className="btn-secondary"
           >
             📊 Analytics
           </Button>

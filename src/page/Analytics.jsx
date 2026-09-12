@@ -153,7 +153,7 @@ export default function Analytics() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-200 via-purple-100 to-pink-100 p-4 md:p-8">
+    <div className="min-h-screen bg-[var(--bg-base)] pt-24 p-4 md:p-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -162,10 +162,10 @@ export default function Analytics() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 text-transparent bg-clip-text">
-              📊 Analytics Dashboard
+            <h1 className="text-3xl md:text-4xl font-bold text-[var(--text-main)]">
+              Analytics Dashboard<span className="text-[#00A63E] dark:text-[#39FF14]">.</span>
             </h1>
-            <p className="text-gray-600 mt-1">Track your learning progress</p>
+            <p className="text-[var(--text-muted)] font-medium mt-1">Track your learning progress</p>
           </div>
           <Button
             onClick={() => navigate(-1)}
@@ -184,11 +184,13 @@ export default function Analytics() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className={`bg-gradient-to-br ${stat.bg} rounded-xl p-4 md:p-6 shadow-lg border border-white/50`}
+              className="glass-panel rounded-2xl p-6 shadow-lg border-[var(--border-color)] flex flex-col justify-between"
             >
-              <div className="text-2xl mb-2">{stat.icon}</div>
-              <div className="text-2xl md:text-3xl font-bold text-gray-800">{stat.value}</div>
-              <div className="text-sm text-gray-600">{stat.label}</div>
+              <div className="text-2xl mb-4 p-3 bg-[var(--bg-base)] w-fit rounded-xl">{stat.icon}</div>
+              <div>
+                <div className="text-2xl md:text-3xl font-bold text-[var(--text-main)] mb-1">{stat.value}</div>
+                <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">{stat.label}</div>
+              </div>
             </motion.div>
           ))}
         </div>
@@ -203,8 +205,10 @@ export default function Analytics() {
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
             {/* Performance Over Time */}
-            <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-6 border border-white/20">
-              <h2 className="text-xl font-bold mb-4 text-gray-800">📈 Performance Over Time</h2>
+            <div className="glass-panel rounded-2xl shadow-xl p-6 border border-[var(--border-color)]">
+              <h2 className="text-xl font-bold mb-6 text-[var(--text-main)] flex items-center gap-2">
+                <FaChartLine className="text-[#00A63E] dark:text-[#39FF14]" /> Performance Over Time
+              </h2>
               {performanceData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={250}>
                   <LineChart data={performanceData}>
@@ -243,8 +247,10 @@ export default function Analytics() {
             </div>
 
             {/* Answer Distribution */}
-            <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-6 border border-white/20">
-              <h2 className="text-xl font-bold mb-4 text-gray-800">🎯 Answer Distribution</h2>
+            <div className="glass-panel rounded-2xl shadow-xl p-6 border border-[var(--border-color)]">
+              <h2 className="text-xl font-bold mb-6 text-[var(--text-main)] flex items-center gap-2">
+                <FaTrophy className="text-yellow-500" /> Answer Distribution
+              </h2>
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie
@@ -267,8 +273,10 @@ export default function Analytics() {
             </div>
 
             {/* Category Performance */}
-            <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-6 border border-white/20">
-              <h2 className="text-xl font-bold mb-4 text-gray-800">🧠 Category Performance</h2>
+            <div className="glass-panel rounded-2xl shadow-xl p-6 border border-[var(--border-color)]">
+              <h2 className="text-xl font-bold mb-6 text-[var(--text-main)] flex items-center gap-2">
+                <FaBrain className="text-purple-500" /> Category Performance
+              </h2>
               <ResponsiveContainer width="100%" height={250}>
                 <RadarChart data={categoryData}>
                   <PolarGrid stroke="#e0e0e0" />
@@ -287,8 +295,10 @@ export default function Analytics() {
             </div>
 
             {/* XP Progression */}
-            <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-6 border border-white/20">
-              <h2 className="text-xl font-bold mb-4 text-gray-800">⚡ XP Progression</h2>
+            <div className="glass-panel rounded-2xl shadow-xl p-6 border border-[var(--border-color)]">
+              <h2 className="text-xl font-bold mb-6 text-[var(--text-main)] flex items-center gap-2">
+                <FaFire className="text-orange-500" /> XP Progression
+              </h2>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={xpProgressionData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
@@ -321,31 +331,38 @@ export default function Analytics() {
 
         {/* AI Recommendations */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
           transition={{ delay: 0.3 }}
-          className="mt-6 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl shadow-xl p-6 text-white"
+          className="mt-8 glass-panel rounded-3xl shadow-xl p-8"
         >
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <FaBrain /> AI Learning Recommendations
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 text-[var(--text-main)]">
+            <FaBrain className="text-[#00A63E] dark:text-[#39FF14]" /> AI Learning Recommendations
           </h2>
-          <div className="grid md:grid-cols-3 gap-4">
-            <div className="bg-white/10 rounded-xl p-4">
-              <div className="text-lg font-semibold mb-2">🎯 Focus Area</div>
-              <p className="text-white/80 text-sm">
-                Based on your performance, consider practicing <strong>Sports</strong> quizzes to improve your weakest category.
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="bg-[var(--bg-base)] rounded-2xl p-6 border border-[var(--border-color)]">
+              <div className="text-lg font-bold mb-3 flex items-center gap-2">
+                <span className="text-red-500">🎯</span> Focus Area
+              </div>
+              <p className="text-[var(--text-muted)] font-medium text-sm leading-relaxed">
+                Based on your performance, consider practicing <strong className="text-[var(--text-main)]">Sports</strong> quizzes to improve your weakest category.
               </p>
             </div>
-            <div className="bg-white/10 rounded-xl p-4">
-              <div className="text-lg font-semibold mb-2">⚡ Quick Win</div>
-              <p className="text-white/80 text-sm">
-                You're doing great in <strong>Geography</strong>! Try harder difficulty to earn more XP.
+            <div className="bg-[var(--bg-base)] rounded-2xl p-6 border border-[var(--border-color)]">
+              <div className="text-lg font-bold mb-3 flex items-center gap-2">
+                <span className="text-yellow-500">⚡</span> Quick Win
+              </div>
+              <p className="text-[var(--text-muted)] font-medium text-sm leading-relaxed">
+                You're doing great in <strong className="text-[var(--text-main)]">Geography</strong>! Try harder difficulty to earn more XP.
               </p>
             </div>
-            <div className="bg-white/10 rounded-xl p-4">
-              <div className="text-lg font-semibold mb-2">🔥 Streak Goal</div>
-              <p className="text-white/80 text-sm">
-                Play {7 - (userProfile.currentStreak || 0)} more days to unlock the "Week Warrior" achievement!
+            <div className="bg-[var(--bg-base)] rounded-2xl p-6 border border-[var(--border-color)]">
+              <div className="text-lg font-bold mb-3 flex items-center gap-2">
+                <span className="text-orange-500">🔥</span> Streak Goal
+              </div>
+              <p className="text-[var(--text-muted)] font-medium text-sm leading-relaxed">
+                Play <strong className="text-[var(--text-main)]">{7 - (userProfile.currentStreak || 0)} more days</strong> to unlock the "Week Warrior" achievement!
               </p>
             </div>
           </div>

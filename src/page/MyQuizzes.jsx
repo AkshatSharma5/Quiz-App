@@ -94,7 +94,7 @@ export default function MyQuizzes() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-200 via-purple-100 to-pink-100 p-4 md:p-8">
+    <div className="min-h-screen p-4 md:p-8">
       <Toaster position="top-center" />
       
       <motion.div
@@ -104,14 +104,14 @@ export default function MyQuizzes() {
       >
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 text-transparent bg-clip-text">
+            <h1 className="text-3xl font-black text-[var(--text-main)] mb-2">
               📝 My Quizzes
             </h1>
-            <p className="text-gray-600 mt-1">Manage your created quizzes</p>
+            <p className="text-[var(--text-muted)] font-medium mt-1">Manage your created quizzes</p>
           </div>
           <Button
             onClick={() => navigate('/create-quiz')}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+            className="btn-primary"
           >
             <FaPlus className="mr-2" /> Create Quiz
           </Button>
@@ -127,14 +127,14 @@ export default function MyQuizzes() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-12 text-center border border-white/20"
+            className="glass-panel rounded-2xl p-12 text-center"
           >
             <div className="text-6xl mb-4">✏️</div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">No Quizzes Yet</h2>
-            <p className="text-gray-600 mb-6">Create your first quiz and share it with the community!</p>
+            <h2 className="text-2xl font-bold text-[var(--text-main)] mb-2">No Quizzes Yet</h2>
+            <p className="text-[var(--text-muted)] font-medium mb-6">Create your first quiz and share it with the community!</p>
             <Button
               onClick={() => navigate('/create-quiz')}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+              className="btn-primary"
             >
               <FaPlus className="mr-2" /> Create Your First Quiz
             </Button>
@@ -147,28 +147,28 @@ export default function MyQuizzes() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white/80 backdrop-blur-xl rounded-xl shadow-lg p-6 border border-white/20 hover:shadow-xl transition-all"
+                className="glass-panel rounded-xl p-6 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-all"
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-2xl">{getCategoryIcon(quiz.category)}</span>
-                      <h3 className="text-xl font-semibold text-gray-800">{quiz.title}</h3>
+                      <h3 className="text-xl font-bold text-[var(--text-main)]">{quiz.title}</h3>
                     </div>
-                    <p className="text-gray-600 text-sm mb-3">{quiz.description}</p>
+                    <p className="text-[var(--text-muted)] text-sm mb-3">{quiz.description}</p>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(quiz.difficulty)}`}>
+                      <span className={`px-2 py-1 rounded-full text-xs font-bold ${getDifficultyColor(quiz.difficulty)}`}>
                         {quiz.difficulty?.charAt(0).toUpperCase() + quiz.difficulty?.slice(1)}
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs font-medium text-[var(--text-muted)]">
                         {quiz.questionCount || quiz.questions?.length} questions
                       </span>
-                      <span className="text-xs text-gray-500 flex items-center gap-1">
+                      <span className="text-xs font-medium text-[var(--text-muted)] flex items-center gap-1">
                         <FaUsers /> {quiz.plays || 0} plays
                       </span>
                       {quiz.averageRating > 0 && (
-                        <span className="text-xs text-gray-500 flex items-center gap-1">
-                          <FaStar className="text-yellow-500" /> {quiz.averageRating.toFixed(1)}
+                        <span className="text-xs font-medium text-[var(--text-muted)] flex items-center gap-1">
+                          <FaStar className="text-[#FFD700]" /> {quiz.averageRating.toFixed(1)}
                         </span>
                       )}
                     </div>
@@ -177,7 +177,7 @@ export default function MyQuizzes() {
                   <div className="flex items-center gap-2">
                     <Button
                       size="sm"
-                      variant="outline"
+                      className="btn-secondary"
                       onClick={() => {
                         console.log('[MyQuizzes] Play button clicked');
                         console.log('[MyQuizzes] Quiz object:', quiz);
@@ -202,8 +202,7 @@ export default function MyQuizzes() {
                     </Button>
                     <Button
                       size="sm"
-                      variant="outline"
-                      className="text-red-600 hover:bg-red-50"
+                      className="btn-secondary text-red-500 hover:bg-red-500/10 border-red-500/20"
                       onClick={() => handleDelete(quiz.id)}
                     >
                       <FaTrash />

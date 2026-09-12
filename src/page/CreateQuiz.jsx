@@ -166,13 +166,13 @@ export default function CreateQuiz() {
     const currentQuestion = quizData.questions[currentPreviewIndex];
     
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-200 via-sky-100 to-emerald-100 p-4 md:p-8">
+      <div className="min-h-screen p-4 md:p-8">
         <div className="max-w-3xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <Button variant="outline" onClick={() => setPreviewMode(false)}>
               <FaArrowLeft className="mr-2" /> Exit Preview
             </Button>
-            <span className="text-gray-600">
+            <span className="text-[var(--text-muted)] font-bold">
               Question {currentPreviewIndex + 1} of {quizData.questions.length}
             </span>
           </div>
@@ -181,23 +181,23 @@ export default function CreateQuiz() {
             key={currentPreviewIndex}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-6 border border-white/20"
+            className="glass-panel rounded-2xl p-6"
           >
-            <h2 className="text-xl font-semibold mb-6">{currentQuestion.question || 'Question text here...'}</h2>
+            <h2 className="text-xl font-bold mb-6 text-[var(--text-main)]">{currentQuestion.question || 'Question text here...'}</h2>
             
             <div className="space-y-3">
               {currentQuestion.options.map((opt, idx) => (
                 <div
                   key={idx}
-                  className={`p-4 rounded-lg border-2 ${
+                  className={`p-4 rounded-xl border-2 font-medium ${
                     idx === currentQuestion.correctIndex
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200 bg-gray-50'
+                      ? 'border-[#00A63E] bg-[#00A63E]/10 text-[#00A63E]'
+                      : 'border-[var(--border-color)] bg-[var(--bg-base)] text-[var(--text-main)]'
                   }`}
                 >
                   {opt || `Option ${idx + 1}`}
                   {idx === currentQuestion.correctIndex && (
-                    <span className="ml-2 text-green-600">✓ Correct</span>
+                    <span className="ml-2 font-bold">✓ Correct</span>
                   )}
                 </div>
               ))}
@@ -225,7 +225,7 @@ export default function CreateQuiz() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-200 via-purple-100 to-pink-100 p-4 md:p-8">
+    <div className="min-h-screen p-4 md:p-8">
       <Toaster position="top-center" />
       
       <motion.div
@@ -234,7 +234,7 @@ export default function CreateQuiz() {
         className="max-w-4xl mx-auto"
       >
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 text-transparent bg-clip-text">
+          <h1 className="text-3xl font-black text-[var(--text-main)]">
             ✏️ Create Quiz
           </h1>
           <div className="flex gap-2">
@@ -251,12 +251,12 @@ export default function CreateQuiz() {
         </div>
 
         {/* Quiz Details */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-6 border border-white/20 mb-6">
-          <h2 className="text-lg font-semibold mb-4">Quiz Details</h2>
+        <div className="glass-panel rounded-2xl p-6 mb-8">
+          <h2 className="text-lg font-bold mb-4 text-[var(--text-main)]">Quiz Details</h2>
           
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+              <label className="block text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Title</label>
               <Input
                 value={quizData.title}
                 onChange={(e) => setQuizData(prev => ({ ...prev, title: e.target.value }))}
@@ -265,11 +265,11 @@ export default function CreateQuiz() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <label className="block text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Category</label>
               <select
                 value={quizData.category}
                 onChange={(e) => setQuizData(prev => ({ ...prev, category: parseInt(e.target.value) }))}
-                className="w-full p-2 border rounded-lg"
+                className="w-full p-2 border-[var(--border-color)] bg-[var(--bg-base)] text-[var(--text-main)] rounded-lg outline-none focus:border-[#00A63E]"
               >
                 {QUIZ_CATEGORIES.filter(c => c.id !== 0).map((cat) => (
                   <option key={cat.id} value={cat.id}>
@@ -280,7 +280,7 @@ export default function CreateQuiz() {
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <label className="block text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Description</label>
               <Input
                 value={quizData.description}
                 onChange={(e) => setQuizData(prev => ({ ...prev, description: e.target.value }))}
@@ -289,16 +289,16 @@ export default function CreateQuiz() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Difficulty</label>
+              <label className="block text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Difficulty</label>
               <div className="flex gap-2">
                 {DIFFICULTY_LEVELS.filter(d => d.id).map((level) => (
                   <button
                     key={level.id}
                     onClick={() => setQuizData(prev => ({ ...prev, difficulty: level.id }))}
-                    className={`px-4 py-2 rounded-lg transition-all ${
+                    className={`px-4 py-2 rounded-lg font-bold transition-all ${
                       quizData.difficulty === level.id
-                        ? `${level.color} text-white`
-                        : 'bg-gray-100'
+                        ? `${level.color} text-white shadow-lg`
+                        : 'bg-[var(--bg-base)] text-[var(--text-main)] border border-[var(--border-color)] opacity-70 hover:opacity-100'
                     }`}
                   >
                     {level.name}
@@ -317,13 +317,13 @@ export default function CreateQuiz() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, x: -100 }}
-              className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-6 border border-white/20 mb-4"
+              className="glass-panel rounded-2xl p-6 mb-6"
             >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-semibold text-lg">Question {qIndex + 1}</h3>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="font-black text-lg text-[var(--text-main)]">Question {qIndex + 1}</h3>
                 <button
                   onClick={() => removeQuestion(qIndex)}
-                  className="text-red-500 hover:text-red-700 p-2"
+                  className="text-red-500 hover:text-red-700 p-2 transition-colors"
                 >
                   <FaTrash />
                 </button>
@@ -341,10 +341,10 @@ export default function CreateQuiz() {
                   <div key={oIndex} className="flex items-center gap-2">
                     <button
                       onClick={() => updateQuestion(qIndex, 'correctIndex', oIndex)}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-all border ${
                         question.correctIndex === oIndex
-                          ? 'bg-green-500 text-white'
-                          : 'bg-gray-200 hover:bg-gray-300'
+                          ? 'bg-[#00A63E] border-[#00A63E] text-white shadow-[0_0_10px_rgba(0,166,62,0.5)]'
+                          : 'bg-[var(--bg-base)] border-[var(--border-color)] text-[var(--border-color)] hover:border-[#00A63E] hover:text-[#00A63E]'
                       }`}
                     >
                       {question.correctIndex === oIndex && <FaCheck />}
@@ -358,7 +358,7 @@ export default function CreateQuiz() {
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-gray-500 mt-2">Click the circle to mark the correct answer</p>
+              <p className="text-xs font-bold text-[var(--text-muted)] mt-4 uppercase tracking-wider">Click the circle to mark the correct answer</p>
             </motion.div>
           ))}
         </AnimatePresence>
@@ -366,7 +366,7 @@ export default function CreateQuiz() {
         {/* Add Question Button */}
         <button
           onClick={addQuestion}
-          className="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-indigo-500 hover:text-indigo-500 transition-all flex items-center justify-center gap-2 mb-6"
+          className="w-full py-4 border-2 border-dashed border-[var(--border-color)] rounded-xl font-bold text-[var(--text-muted)] hover:border-[#00A63E] hover:text-[#00A63E] hover:bg-[#00A63E]/5 transition-all flex items-center justify-center gap-2 mb-8"
         >
           <FaPlus /> Add Question
         </button>
@@ -375,7 +375,7 @@ export default function CreateQuiz() {
         <Button
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-4 text-lg font-semibold"
+          className="w-full btn-primary py-6 text-lg font-black tracking-wide"
         >
           {loading ? (
             'Creating...'

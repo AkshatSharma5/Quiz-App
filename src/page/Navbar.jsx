@@ -1,8 +1,9 @@
 "use client";
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { FaGithub, FaLinkedin, FaUser, FaSignOutAlt, FaTrophy, FaChartLine, FaBrain, FaPlus, FaGlobe, FaBook } from "react-icons/fa";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { FaGithub, FaLinkedin, FaUser, FaSignOutAlt, FaTrophy, FaChartLine, FaBrain, FaPlus, FaGlobe, FaBook, FaSun, FaMoon, FaBars } from "react-icons/fa";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 import icon from "../assets/icon.png";
 import {
   Tooltip,
@@ -32,7 +33,9 @@ import StreakTracker from "@/components/StreakTracker";
 
 export default function Navbar() {
   const { user, userProfile, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = async () => {
     try {
@@ -43,170 +46,131 @@ export default function Navbar() {
     }
   };
 
+  const navLinks = [
+    { name: 'Home', path: '/' },
+    { name: 'Play', path: '/quiz-setup' },
+    { name: 'Community', path: '/browse-quizzes', icon: <FaGlobe /> },
+    { name: 'Study', path: '/study', icon: <FaBook /> },
+    { name: 'Leaderboard', path: '/leaderboard', icon: <FaTrophy className="text-yellow-500" /> }
+  ];
+
   return (
     <TooltipProvider>
-      <header className="flex flex-col gap-3 lg:flex-row items-center justify-between py-3 px-6 bg-gradient-to-r from-blue-300 via-fuchsia-200 to-purple-200 shadow-md border-b-4 border-purple-300">
-        <Link to="/">
-          <div className="flex items-center gap-2">
-            <img src={icon} alt="Logo" className="w-8 h-8 text-md" />
-            <span className="lg:text-xl font-semibold uppercase bg-gradient-to-r from-indigo-700 via-sky-600 to-purple-700 text-transparent bg-clip-text font-spaceGrotesk tracking-wider">
-              QuizUp🚀
+      <div className="fixed top-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
+        <header className="glass-nav shadow-lg border-[var(--border-color)] pointer-events-auto w-full max-w-[1200px]">
+          <div className="flex items-center justify-between py-3 px-4 md:px-8">
+          <Link to="/" className="flex items-center gap-2 group">
+            <img src={icon} alt="Logo" className="w-8 h-8 transition-transform group-hover:scale-110" />
+            <span className="text-xl font-bold tracking-tight text-[var(--text-main)]">
+              QuizUp<span className="text-[#00A63E] dark:text-[#39FF14]">.</span>
             </span>
-            <span className="font-semibold uppercase bg-gradient-to-r from-red-700 via-orange-600 to-pink-700 text-transparent bg-clip-text font-spaceGrotesk tracking-wider text-sm">
-              (AI-powered) ✨
-            </span>
-          </div>
-        </Link>
+          </Link>
 
-        {/* Center: Navigation Links */}
-        <nav className="flex items-center gap-4 text-sm font-medium font-spaceGrotesk flex-wrap justify-center">
-          <Link to="/" className="hover:text-blue-600 transition-colors">
-            Home
-          </Link>
-          <span className="h-4 w-px bg-gray-400 hidden md:block"></span>
-          
-          <Link to="/quiz-setup" className="hover:text-blue-600 transition-colors">
-            Play Quiz
-          </Link>
-          <span className="h-4 w-px bg-gray-400 hidden md:block"></span>
-          
-          <Link to="/browse-quizzes" className="hover:text-blue-600 transition-colors flex items-center gap-1">
-            <FaGlobe className="text-xs" /> Community
-          </Link>
-          <span className="h-4 w-px bg-gray-400 hidden md:block"></span>
-          
-          <Link to="/study" className="hover:text-blue-600 transition-colors flex items-center gap-1">
-            <FaBook className="text-xs" /> Study
-          </Link>
-          <span className="h-4 w-px bg-gray-400 hidden md:block"></span>
-          
-          <Link to="/leaderboard" className="hover:text-blue-600 transition-colors flex items-center gap-1">
-            <FaTrophy className="text-xs text-yellow-600" /> Leaderboard
-          </Link>
-          <span className="h-4 w-px bg-gray-400 hidden md:block"></span>
-          
-          <Dialog>
-            <DialogTrigger className="hover:text-blue-600 transition-colors">
-              Translate
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  <Button>Translate:</Button>
-                </DialogTitle>
-                <DialogDescription>
-                  <Translate />
-                </DialogDescription>
-              </DialogHeader>
-            </DialogContent>
-          </Dialog>
-        </nav>
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-6 text-sm font-semibold">
+            {navLinks.map((link) => (
+              <Link 
+                key={link.name} 
+                to={link.path} 
+                className={`flex items-center gap-1.5 transition-colors hover:text-[#00A63E] dark:hover:text-[#39FF14] ${location.pathname === link.path ? 'text-[#00A63E] dark:text-[#39FF14]' : 'text-[var(--text-main)]'}`}
+              >
+                {link.icon && <span className="text-xs opacity-70">{link.icon}</span>}
+                {link.name}
+              </Link>
+            ))}
+            
+            <Dialog>
+              <DialogTrigger className="text-[var(--text-main)] hover:text-[#00A63E] dark:hover:text-[#39FF14] transition-colors text-sm font-semibold">
+                Translate
+              </DialogTrigger>
+              <DialogContent className="glass-panel border-[var(--border-color)]">
+                <DialogHeader>
+                  <DialogTitle className="text-[var(--text-main)] font-bold">Translate</DialogTitle>
+                  <DialogDescription>
+                    <Translate />
+                  </DialogDescription>
+                </DialogHeader>
+              </DialogContent>
+            </Dialog>
+          </nav>
 
-        {/* Right: User Menu or Auth Buttons */}
-        <div className="flex items-center gap-3 font-spaceGrotesk">
-          {user && userProfile && (
-            <StreakTracker size="mini" />
-          )}
-          
-          {user ? (
+          {/* Right Section */}
+          <div className="flex items-center gap-3">
+            {user && userProfile && (
+              <div className="hidden sm:block">
+                <StreakTracker size="mini" />
+              </div>
+            )}
+
+            <button 
+              onClick={toggleTheme} 
+              className="w-9 h-9 flex items-center justify-center rounded-full bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)] hover:border-[var(--text-muted)] transition-all"
+              aria-label="Toggle Theme"
+            >
+              {theme === 'light' ? <FaMoon className="text-sm" /> : <FaSun className="text-sm" />}
+            </button>
+            
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 rounded-full border border-[var(--border-color)] p-1 pr-3 hover:bg-[var(--bg-base)] transition-colors outline-none">
+                    <div className="w-8 h-8 rounded-full bg-[var(--text-main)] text-[var(--bg-surface)] flex items-center justify-center font-bold text-sm">
+                      {userProfile?.photoURL ? (
+                        <img src={userProfile.photoURL} alt="Profile" className="w-full h-full rounded-full object-cover" />
+                      ) : (
+                        userProfile?.displayName?.charAt(0).toUpperCase() || 'U'
+                      )}
+                    </div>
+                    <span className="text-sm font-bold hidden md:block text-[var(--text-main)]">
+                      {userProfile?.displayName?.split(' ')[0] || 'User'}
+                    </span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 glass-panel border-[var(--border-color)] text-[var(--text-main)] mt-2">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col">
+                      <span className="font-bold">{userProfile?.displayName}</span>
+                      <span className="text-xs text-[var(--text-muted)]">Level {userProfile?.level || 1} • {userProfile?.xp || 0} XP</span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-[var(--border-color)]" />
+                  <DropdownMenuItem onClick={() => navigate('/profile')} className="focus:bg-[var(--bg-base)] focus:text-[var(--text-main)] cursor-pointer"><FaUser className="mr-2" /> Profile</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/analytics')} className="focus:bg-[var(--bg-base)] focus:text-[var(--text-main)] cursor-pointer"><FaChartLine className="mr-2" /> Analytics</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/my-quizzes')} className="focus:bg-[var(--bg-base)] focus:text-[var(--text-main)] cursor-pointer"><FaBrain className="mr-2" /> My Quizzes</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/create-quiz')} className="focus:bg-[var(--bg-base)] focus:text-[var(--text-main)] cursor-pointer"><FaPlus className="mr-2" /> Create Quiz</DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-[var(--border-color)]" />
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-500 focus:bg-red-500/10 focus:text-red-500 cursor-pointer">
+                    <FaSignOutAlt className="mr-2" /> Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button onClick={() => navigate('/login')} className="hidden sm:block text-sm font-semibold text-[var(--text-main)] px-3 py-2 hover:text-[var(--text-muted)] transition-colors">Log In</button>
+                <button onClick={() => navigate('/register')} className="btn-primary text-sm">Sign Up</button>
+              </div>
+            )}
+
+            {/* Mobile Menu Toggle (simplified for now to just show dropdown of links on click, or simply keep as horizontal scroll on phones) */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 bg-white/50 hover:bg-white/80 rounded-full px-3 py-2 transition-colors">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
-                    {userProfile?.photoURL ? (
-                      <img 
-                        src={userProfile.photoURL} 
-                        alt="Profile" 
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      userProfile?.displayName?.charAt(0).toUpperCase() || 'U'
-                    )}
-                  </div>
-                  <span className="text-sm font-medium hidden md:block">
-                    {userProfile?.displayName?.split(' ')[0] || 'User'}
-                  </span>
+                <button className="md:hidden w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)]">
+                  <FaBars />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>
-                  <div className="flex flex-col">
-                    <span>{userProfile?.displayName}</span>
-                    <span className="text-xs text-gray-500">Level {userProfile?.level || 1} • {userProfile?.xp || 0} XP</span>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate('/profile')}>
-                  <FaUser className="mr-2" /> Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/analytics')}>
-                  <FaChartLine className="mr-2" /> Analytics
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/my-quizzes')}>
-                  <FaBrain className="mr-2" /> My Quizzes
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/create-quiz')}>
-                  <FaPlus className="mr-2" /> Create Quiz
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-                  <FaSignOutAlt className="mr-2" /> Logout
-                </DropdownMenuItem>
+              <DropdownMenuContent align="end" className="w-48 glass-panel border-[var(--border-color)] md:hidden">
+                {navLinks.map((link) => (
+                  <DropdownMenuItem key={link.name} onClick={() => navigate(link.path)} className="focus:bg-[var(--bg-base)] cursor-pointer">
+                    {link.icon && <span className="mr-2 opacity-70">{link.icon}</span>}
+                    {link.name}
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/login')}
-                className="text-sm"
-              >
-                Sign In
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => navigate('/register')}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-sm"
-              >
-                Sign Up
-              </Button>
-            </div>
-          )}
-
-          {/* Social Links */}
-          <div className="hidden lg:flex items-center gap-2 ml-2">
-            <Tooltip>
-              <TooltipTrigger>
-                <a
-                  href="https://github.com/AkshatSharma5"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <FaGithub className="w-5 h-5 hover:text-gray-800 transition-colors" />
-                </a>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>GitHub</p>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger>
-                <a
-                  href="https://www.linkedin.com/in/akshat-sharma-7914a7250/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <FaLinkedin className="w-5 h-5 hover:text-blue-700 transition-colors" />
-                </a>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>LinkedIn</p>
-              </TooltipContent>
-            </Tooltip>
           </div>
         </div>
       </header>
+      </div>
     </TooltipProvider>
   );
 }

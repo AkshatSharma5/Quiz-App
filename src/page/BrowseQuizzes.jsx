@@ -94,21 +94,21 @@ export default function BrowseQuizzes() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-200 via-purple-100 to-pink-100 p-4 md:p-8">
+    <div className="min-h-screen p-4 md:p-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-w-6xl mx-auto"
       >
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-transparent bg-clip-text mb-2">
+          <h1 className="text-4xl font-black text-[var(--text-main)] mb-2">
             🌍 Community Quizzes
           </h1>
           <p className="text-gray-600">Discover and play quizzes created by the community</p>
         </div>
 
         {/* Search & Filters */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-4 md:p-6 border border-white/20 mb-6">
+        <div className="glass-panel rounded-2xl p-4 md:p-6 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
             <div className="flex-1 relative">
@@ -117,7 +117,7 @@ export default function BrowseQuizzes() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search quizzes..."
-                className="pl-10"
+                className="pl-10 bg-[var(--bg-base)] text-[var(--text-main)] border-[var(--border-color)]"
               />
             </div>
 
@@ -125,7 +125,7 @@ export default function BrowseQuizzes() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(parseInt(e.target.value))}
-              className="px-4 py-2 border rounded-lg bg-white"
+              className="px-4 py-2 rounded-lg bg-[var(--bg-base)] text-[var(--text-main)] border-[var(--border-color)] font-medium"
             >
               <option value={0}>All Categories</option>
               {QUIZ_CATEGORIES.filter(c => c.id !== 0).map((cat) => (
@@ -139,7 +139,7 @@ export default function BrowseQuizzes() {
             <select
               value={selectedDifficulty}
               onChange={(e) => setSelectedDifficulty(e.target.value)}
-              className="px-4 py-2 border rounded-lg bg-white"
+              className="px-4 py-2 rounded-lg bg-[var(--bg-base)] text-[var(--text-main)] border-[var(--border-color)] font-medium"
             >
               <option value="">All Difficulties</option>
               {DIFFICULTY_LEVELS.filter(d => d.id).map((level) => (
@@ -159,10 +159,10 @@ export default function BrowseQuizzes() {
             ))}
           </div>
         ) : filteredQuizzes.length === 0 ? (
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-12 text-center border border-white/20">
+          <div className="glass-panel rounded-2xl p-12 text-center">
             <div className="text-6xl mb-4">🔍</div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">No Quizzes Found</h2>
-            <p className="text-gray-600 mb-6">
+            <h2 className="text-2xl font-bold text-[var(--text-main)] mb-2">No Quizzes Found</h2>
+            <p className="text-[var(--text-muted)] mb-6">
               {searchTerm 
                 ? 'Try a different search term'
                 : 'Be the first to create a quiz in this category!'
@@ -170,7 +170,7 @@ export default function BrowseQuizzes() {
             </p>
             <Button
               onClick={() => navigate('/create-quiz')}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600"
+              className="btn-primary"
             >
               Create Quiz
             </Button>
@@ -183,39 +183,39 @@ export default function BrowseQuizzes() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                whileHover={{ scale: 1.02 }}
-                className="bg-white/80 backdrop-blur-xl rounded-xl shadow-lg p-5 border border-white/20 cursor-pointer"
+                whileHover={{ scale: 1.02, y: -5 }}
+                className="glass-panel rounded-2xl p-6 cursor-pointer flex flex-col justify-between"
                 onClick={() => handlePlayQuiz(quiz)}
               >
-                <div className="flex items-start gap-3 mb-3">
+                <div className="flex items-start gap-3 mb-4">
                   <span className="text-3xl">{getCategoryIcon(quiz.category)}</span>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-800 line-clamp-1">{quiz.title}</h3>
-                    <p className="text-sm text-gray-500">by {quiz.creatorName}</p>
+                    <h3 className="font-bold text-[var(--text-main)] line-clamp-1">{quiz.title}</h3>
+                    <p className="text-sm text-[var(--text-muted)] font-medium">by {quiz.creatorName}</p>
                   </div>
                 </div>
 
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{quiz.description}</p>
+                <p className="text-[var(--text-muted)] text-sm mb-4 line-clamp-2">{quiz.description}</p>
 
                 <div className="flex flex-wrap items-center gap-2 mb-4">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(quiz.difficulty)}`}>
+                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${getDifficultyColor(quiz.difficulty)}`}>
                     {quiz.difficulty?.charAt(0).toUpperCase() + quiz.difficulty?.slice(1)}
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs font-medium text-[var(--text-muted)]">
                     {quiz.questionCount || quiz.questions?.length} Qs
                   </span>
-                  <span className="text-xs text-gray-500 flex items-center gap-1">
+                  <span className="text-xs font-medium text-[var(--text-muted)] flex items-center gap-1">
                     <FaUsers /> {quiz.plays || 0}
                   </span>
                   {quiz.averageRating > 0 && (
-                    <span className="text-xs text-gray-500 flex items-center gap-1">
-                      <FaStar className="text-yellow-500" /> {quiz.averageRating.toFixed(1)}
+                    <span className="text-xs font-medium text-[var(--text-muted)] flex items-center gap-1">
+                      <FaStar className="text-[#FFD700]" /> {quiz.averageRating.toFixed(1)}
                     </span>
                   )}
                 </div>
 
                 <Button
-                  className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600"
+                  className="w-full btn-primary mt-4"
                   onClick={(e) => {
                     e.stopPropagation();
                     handlePlayQuiz(quiz);

@@ -59,99 +59,99 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-200 via-purple-100 to-pink-100 flex items-center justify-center p-4">
-      <Toaster position="top-center" />
+    <div className="min-h-[92vh] flex items-center justify-center p-4">
+      <Toaster position="top-center" toastOptions={{ style: { background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--border-color)' } }} />
       
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
         className="w-full max-w-md"
       >
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/20">
+        <div className="glass-panel rounded-3xl p-8 md:p-10">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-transparent bg-clip-text">
-              Create Account
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[var(--text-main)] mb-2">
+              JOIN US.
             </h1>
-            <p className="text-gray-600 mt-2">Join QuizUp and start learning!</p>
+            <p className="text-[var(--text-muted)] font-medium">Create an account to start learning</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="relative">
-              <FaUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
               <Input
                 type="text"
                 placeholder="Display Name"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="pl-10 bg-white/50"
+                className="pl-11 h-12 bg-[var(--bg-base)] border-[var(--border-color)] rounded-xl font-medium focus-visible:ring-[#00A63E] dark:focus-visible:ring-[#39FF14]"
                 required
               />
             </div>
 
             <div className="relative">
-              <FaEnvelope className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
               <Input
                 type="email"
                 placeholder="Email Address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pl-10 bg-white/50"
+                className="pl-11 h-12 bg-[var(--bg-base)] border-[var(--border-color)] rounded-xl font-medium focus-visible:ring-[#00A63E] dark:focus-visible:ring-[#39FF14]"
                 required
               />
             </div>
 
             <div className="relative">
-              <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
               <Input
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-10 bg-white/50"
+                className="pl-11 h-12 bg-[var(--bg-base)] border-[var(--border-color)] rounded-xl font-medium focus-visible:ring-[#00A63E] dark:focus-visible:ring-[#39FF14]"
                 required
               />
             </div>
 
             <div className="relative">
-              <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
               <Input
                 type="password"
                 placeholder="Confirm Password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="pl-10 bg-white/50"
+                className="pl-11 h-12 bg-[var(--bg-base)] border-[var(--border-color)] rounded-xl font-medium focus-visible:ring-[#00A63E] dark:focus-visible:ring-[#39FF14]"
                 required
               />
             </div>
 
-            <Button
+            <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 rounded-lg font-semibold"
+              className="btn-primary w-full h-12 text-base mt-2"
             >
               {loading ? 'Creating Account...' : 'Create Account'}
-            </Button>
+            </button>
           </form>
 
-          <div className="flex items-center my-6">
-            <div className="flex-1 h-px bg-gray-300" />
-            <span className="px-4 text-gray-500 text-sm">or</span>
-            <div className="flex-1 h-px bg-gray-300" />
+          <div className="flex items-center my-8">
+            <div className="flex-1 h-px bg-[var(--border-color)]" />
+            <span className="px-4 text-[var(--text-muted)] text-sm font-bold uppercase tracking-wider">or</span>
+            <div className="flex-1 h-px bg-[var(--border-color)]" />
           </div>
 
-          <Button
+          <button
             onClick={handleGoogleSignIn}
             disabled={loading}
-            variant="outline"
-            className="w-full flex items-center justify-center gap-2 py-3 border-2 hover:bg-gray-50"
+            className="btn-secondary w-full h-12 flex items-center justify-center gap-3 text-base"
           >
-            <FaGoogle className="text-red-500" />
+            <FaGoogle />
             Continue with Google
-          </Button>
+          </button>
 
-          <p className="text-center mt-6 text-gray-600">
+          <p className="text-center mt-8 text-[var(--text-muted)] font-medium">
             Already have an account?{' '}
-            <Link to="/login" className="text-indigo-600 hover:text-indigo-800 font-semibold">
+            <Link to="/login" className="text-[#00A63E] dark:text-[#39FF14] hover:underline font-bold">
               Sign In
             </Link>
           </p>

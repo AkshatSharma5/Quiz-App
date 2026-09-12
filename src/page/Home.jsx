@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
@@ -34,6 +36,24 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const [topUsers, setTopUsers] = useState([]);
+
+  useEffect(() => {
+    const fetchTopUsers = async () => {
+      try {
+        const q = query(collection(db, "users"), orderBy("totalScore", "desc"), limit(3));
+        const snapshot = await getDocs(q);
+        const users = [];
+        snapshot.forEach(doc => {
+          users.push({ id: doc.id, ...doc.data() });
+        });
+        setTopUsers(users);
+      } catch (err) {
+        console.error("Error fetching top users", err);
+      }
+    };
+    fetchTopUsers();
+  }, []);
 
   const confettiKaro = () => {
     confetti({ particleCount: 100, spread: 50, origin: { x: 0.5, y: 1 } });
@@ -88,72 +108,149 @@ export default function Home() {
     }
   };
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
   return (
-    <div className="relative min-h-[92vh] w-full bg-gradient-to-r from-indigo-200 from-10% via-sky-100 via-30% to-emerald-100 to-90%">
-      <Toaster position="top-center" />
+    <div className="w-full pt-32 pb-16 px-4 md:px-6 relative">
+      <Toaster position="top-center" toastOptions={{ style: { background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--border-color)' } }} />
       
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* Massive Hero Section */}
+      <div className="max-w-[1000px] mx-auto text-center mb-32 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        >
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-[var(--text-main)] mb-6 leading-tight">
+            Advanced Learning <br className="hidden md:block" />
+            <span className="text-[#00A63E] dark:text-[#39FF14]">Infrastructure</span>
+          </h1>
+          <p className="text-[var(--text-muted)] text-xl md:text-2xl font-semibold mb-12 max-w-2xl mx-auto leading-relaxed min-h-[60px] md:min-h-[80px]">
+            <Typewriter
+              words={[
+                'Comprehensive evaluation architectures for knowledge validation.',
+                'The ultimate platform to systematically transform study habits.',
+                'Engage with algorithmic assessments and global rankings.',
+                'Next-generation cognitive conditioning and retention pathways.'
+              ]}
+              loop={true}
+              cursor
+              cursorStyle='_'
+              typeSpeed={40}
+              deleteSpeed={20}
+              delaySpeed={3000}
+            />
+          </p>
+          
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+            <button 
+              onClick={() => navigate('/quiz-setup')}
+              className="btn-primary text-lg px-10 py-4 h-auto shadow-[0_0_30px_rgba(57,255,20,0.3)] hover:shadow-[0_0_50px_rgba(57,255,20,0.5)] transition-all"
+            >
+              Get started
+            </button>
+            <button 
+              onClick={() => navigate('/browse-quizzes')}
+              className="btn-secondary text-lg px-10 py-4 h-auto bg-[var(--bg-surface)] backdrop-blur-xl"
+            >
+              Explore community
+            </button>
+          </div>
+
+          {/* Testimonies / Trusted By section */}
+          <div className="pt-8 border-t border-[var(--border-color)] max-w-4xl mx-auto">
+            <p className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider mb-8">
+              Join top learners climbing the leaderboard
+            </p>
+            <div className="flex flex-wrap justify-center items-center gap-6 md:gap-12">
+              {topUsers.length > 0 ? topUsers.map((u, i) => (
+                <div key={u.id || i} className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[var(--border-color)] shadow-md filter grayscale">
+                    <img src={u.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${u.displayName || 'User'}&backgroundColor=000000`} alt="User avatar" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-bold text-[var(--text-main)]">{u.displayName?.split(' ')[0] || 'User'}</div>
+                    <div className="text-xs text-[var(--text-muted)] font-semibold">Lvl {u.level || 1}</div>
+                  </div>
+                </div>
+              )) : (
+                <div className="text-[var(--text-muted)] text-sm font-medium animate-pulse">Loading top learners...</div>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
+      <div className="max-w-[1400px] mx-auto relative z-10 mt-32">
         {/* Welcome Section for logged in users */}
         {user && userProfile && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8 text-center"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6 }}
+            className="mb-8"
           >
-            <h1 className="text-3xl font-bold text-gray-800">
-              Welcome back, <span className="bg-gradient-to-r from-indigo-600 to-purple-600 text-transparent bg-clip-text">{userProfile.displayName?.split(' ')[0]}</span>! 👋
-            </h1>
-            <p className="text-gray-600 mt-1">Ready to continue your learning journey?</p>
+            <h2 className="text-2xl font-bold tracking-tight text-[var(--text-main)] mb-1">
+              Welcome back, <span className="text-[#00A63E] dark:text-[#39FF14]">{userProfile.displayName?.split(' ')[0]}</span>.
+            </h2>
           </motion.div>
         )}
 
         {/* Top Stats Row for Logged In Users */}
         {user && userProfile && (
-          <div className="grid md:grid-cols-3 gap-4 mb-8">
-            <StreakTracker />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-white/80 backdrop-blur-xl rounded-xl shadow-lg p-4 border border-white/20"
+          <div className="grid md:grid-cols-3 gap-6 mb-16">
+            <motion.div 
+              className="hidden md:block h-full"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6 }}
             >
-              <div className="text-sm text-gray-500 mb-1">Level Progress</div>
-              <div className="flex items-center gap-3">
-                <div className="text-2xl font-bold text-indigo-600">Lvl {userProfile.level || 1}</div>
+              <StreakTracker />
+            </motion.div>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ delay: 0.1, duration: 0.6 }}
+              className="glass-panel rounded-2xl p-6 flex flex-col justify-between"
+            >
+              <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-4">Level Progress</div>
+              <div className="flex items-center gap-4">
+                <div className="text-3xl font-bold text-[#00A63E] dark:text-[#39FF14]">Lvl {userProfile.level || 1}</div>
                 <div className="flex-1">
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full bg-[var(--border-color)] rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${((userProfile.xp || 0) % 500) / 5}%` }}
-                      className="h-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                      className="h-full bg-[#00A63E] dark:bg-[#39FF14]"
                     />
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">{userProfile.xp || 0} XP</div>
+                  <div className="text-xs font-medium text-[var(--text-muted)] mt-2">{userProfile.xp || 0} XP</div>
                 </div>
               </div>
             </motion.div>
+
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1 }}
-              className="bg-white/80 backdrop-blur-xl rounded-xl shadow-lg p-4 border border-white/20"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+              className="glass-panel rounded-2xl p-6 flex flex-col justify-between"
             >
-              <div className="text-sm text-gray-500 mb-1">Stats</div>
-              <div className="flex justify-between text-sm">
+              <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-4">Global Stats</div>
+              <div className="flex justify-between items-end">
                 <div>
-                  <div className="text-xl font-bold text-gray-800">{userProfile.totalQuizzes || 0}</div>
-                  <div className="text-gray-500">Quizzes</div>
+                  <div className="text-2xl font-bold text-[var(--text-main)]">{userProfile.totalQuizzes || 0}</div>
+                  <div className="text-xs font-medium text-[var(--text-muted)]">Quizzes</div>
                 </div>
                 <div>
-                  <div className="text-xl font-bold text-green-600">{userProfile.correctAnswers || 0}</div>
-                  <div className="text-gray-500">Correct</div>
+                  <div className="text-2xl font-bold text-[#00A63E] dark:text-[#39FF14]">{userProfile.correctAnswers || 0}</div>
+                  <div className="text-xs font-medium text-[var(--text-muted)]">Correct</div>
                 </div>
                 <div>
-                  <div className="text-xl font-bold text-yellow-600">{userProfile.totalScore || 0}</div>
-                  <div className="text-gray-500">Score</div>
+                  <div className="text-2xl font-bold text-[var(--text-main)]">{userProfile.totalScore || 0}</div>
+                  <div className="text-xs font-medium text-[var(--text-muted)]">Score</div>
                 </div>
               </div>
             </motion.div>
@@ -161,42 +258,50 @@ export default function Home() {
         )}
 
         {/* Daily Challenge */}
-        <div className="mb-8">
+        <motion.div 
+          className="mb-16"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+        >
           <DailyChallenge />
-        </div>
+        </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-2 gap-8 mb-24">
           {/* AI Chat Card */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="relative py-2 border border-[#0000001f] backdrop-blur-3xl rounded-xl bg-[#a3e0e220] flex flex-col"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6 }}
+            className="glass-panel rounded-3xl flex flex-col min-h-[500px]"
           >
-            <div className="p-6 flex flex-col flex-1">
-              <div className="text-3xl underline underline-offset-8 font-bold bg-gradient-to-r from-indigo-700 via-sky-600 to-purple-700 text-transparent bg-clip-text mb-6 text-center">
+            <div className="p-8 flex flex-col flex-1">
+              <div className="text-2xl md:text-3xl font-bold tracking-tight mb-8 text-[var(--text-main)]">
                 LEARN NOW
               </div>
               {messages.length === 0 && (
-                <div className="flex justify-center items-center">
-                  <img src={chatbot} alt="Welcome" className="w-[50%] h-[100%]" />
+                <div className="flex justify-center items-center flex-1 py-2">
+                  <img src={chatbot} alt="AI Chatbot" className="w-[80%] max-w-[350px] opacity-80 drop-shadow-2xl mix-blend-multiply dark:mix-blend-screen filter grayscale" />
                 </div>
               )}
-              <div className="flex-1 overflow-y-auto max-h-[300px] rounded-lg mb-4">
-                <ScrollArea className="flex-1">
+              <div className="flex-1 overflow-y-auto max-h-[300px] mb-4">
+                <ScrollArea className="flex-1 pr-4">
                   <AnimatePresence>
                     {messages.map((message, index) => (
                       <motion.div
                         key={index}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0 }}
-                        className={`mb-3 p-3 rounded-lg max-w-[90%] ${
+                        className={`mb-4 p-4 rounded-2xl max-w-[85%] shadow-sm ${
                           message.role === "user"
-                            ? "bg-blue-200 ml-auto"
-                            : "bg-gray-100 mr-auto"
+                            ? "bg-[var(--text-main)] text-[var(--bg-surface)] ml-auto rounded-tr-sm"
+                            : "bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)] mr-auto rounded-tl-sm"
                         }`}
                       >
-                        <ReactMarkdown className="prose whitespace-pre-wrap break-words text-sm">
+                        <ReactMarkdown className="prose dark:prose-invert whitespace-pre-wrap break-words text-sm font-medium">
                           {message.content}
                         </ReactMarkdown>
                       </motion.div>
@@ -206,154 +311,136 @@ export default function Home() {
                 </ScrollArea>
               </div>
 
-              <div className="mb-2">
+              <div className="mb-4">
                 <button
                   onClick={handleSuggestionClick}
-                  className="text-sm text-blue-600 hover:text-blue-800 italic cursor-pointer"
+                  className="text-xs font-medium text-[var(--text-muted)] hover:text-[#00A63E] dark:hover:text-[#39FF14] transition-colors"
                 >
-                  "How to upskill myself by evaluating through quizzes"
+                  Suggestion: "How to upskill myself by evaluating through quizzes"
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="flex gap-2">
+              <form onSubmit={handleSubmit} className="flex gap-3">
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask me anything..."
                   disabled={loading}
-                  className="flex-1 bg-white/70 backdrop-blur-sm"
+                  className="flex-1 bg-[var(--bg-base)] border-[var(--border-color)] h-12 rounded-full px-6 font-medium focus-visible:ring-[#00A63E] dark:focus-visible:ring-[#39FF14]"
                 />
-                <Button
+                <button
                   type="submit"
                   disabled={loading}
-                  className="bg-blue-700 hover:bg-green-600"
+                  className="btn-primary h-12 px-8 flex items-center justify-center min-w-[100px]"
                 >
                   {loading ? "..." : "Send"}
-                </Button>
+                </button>
               </form>
             </div>
           </motion.div>
 
-          {/* Quiz Card */}
+          {/* True Pipeline UI */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="relative py-2 border border-[#0000001f] backdrop-blur-3xl rounded-xl bg-[#a3e0e220] flex flex-col"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="w-full py-16 px-4"
           >
-            <div className="flex flex-col justify-center items-center gap-6 h-full p-6">
-              <div className="text-3xl underline underline-offset-8 font-bold bg-gradient-to-r from-indigo-700 via-sky-600 to-purple-700 text-transparent bg-clip-text">
-                Get set, it's quiz time!
-              </div>
-              <div className="text-md text-sky-600">
-                <Typewriter
-                  words={[
-                    "Boost knowledge, enhance skills! 📚💡",
-                    "Sharpen focus, ace exams 🎯📖",
-                    "Engage minds, build confidence 💪🧠",
-                  ]}
-                  loop={0}
-                  cursor
-                  cursorStyle="|"
-                  typeSpeed={70}
-                  deleteSpeed={50}
-                  delaySpeed={1000}
-                />
-              </div>
-              <div className="flex justify-center items-center">
-                <img src={study} alt="Study" className="max-h-[180px]" />
-              </div>
+            <div className="relative w-full max-w-4xl mx-auto aspect-square md:aspect-[16/10] my-10">
               
-              <div className="flex flex-wrap justify-center gap-3">
-                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="hover:scale-105 bg-blue-700 hover:bg-green-600 transition-all px-6 py-3 rounded-full text-white font-semibold">
-                      <FaPlay className="mr-2" /> Start Quiz 🚀
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-md">
-                    <DialogHeader>
-                      <DialogTitle className="text-2xl mb-4">
-                        Quiz Rules
-                      </DialogTitle>
-                      <DialogDescription className="text-left space-y-3">
-                        <ul className="list-disc list-inside space-y-2">
-                          <li>5 Lives available - game over when they reach 0</li>
-                          <li className="text-red-700">
-                            3 minute cooldown after game over
-                          </li>
-                          <li>15 seconds per question limit</li>
-                          <li>3 hints available throughout the quiz</li>
-                          <li>
-                            Scoring:
-                            <ul className="list-[circle] list-inside ml-4">
-                              <li>Hard questions: 5 points</li>
-                              <li>Medium questions: 4 points</li>
-                              <li>Easy questions: 3 points</li>
-                            </ul>
-                          </li>
-                          <li>1 point deduction for wrong answers</li>
-                        </ul>
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="mt-4 flex justify-end">
-                      <Button
-                        onClick={handleProceed}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        Proceed to Setup ➡️
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+              {/* SVG Track Layer */}
+              <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none z-0" style={{ padding: '2px' }}>
+                <path 
+                  d="M 0 0 L 40 0 L 40 18 L 60 18 L 60 0 L 100 0 L 100 40 L 82 40 L 82 60 L 100 60 L 100 100 L 60 100 L 60 82 L 40 82 L 40 100 L 0 100 L 0 60 L 18 60 L 18 40 L 0 40 Z" 
+                  fill="none" 
+                  stroke="var(--border-color)" 
+                  strokeWidth="2" 
+                  vectorEffect="non-scaling-stroke" 
+                />
+                <path 
+                  d="M 40 22 L 40 40 L 22 40 L 22 60 L 40 60 L 40 78 L 60 78 L 60 60 L 78 60 L 78 40 L 60 40 L 60 22 Z" 
+                  fill="none" 
+                  stroke="var(--border-color)" 
+                  strokeWidth="2" 
+                  vectorEffect="non-scaling-stroke" 
+                />
+                
+                {/* The traveling electron */}
+                <path 
+                  d="M 0 0 L 40 0 L 40 18 L 60 18 L 60 0 L 100 0 L 100 40 L 82 40 L 82 60 L 100 60 L 100 100 L 60 100 L 60 82 L 40 82 L 40 100 L 0 100 L 0 60 L 18 60 L 18 40 L 0 40 Z" 
+                  pathLength="100"
+                  fill="none" 
+                  stroke="#39FF14" 
+                  strokeWidth="4" 
+                  vectorEffect="non-scaling-stroke"
+                  className="animate-electron drop-shadow-[0_0_10px_rgba(57,255,20,1)]"
+                />
+              </svg>
 
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/study')}
-                  className="hover:scale-105 transition-all px-6 py-3 rounded-full"
-                >
-                  <FaBook className="mr-2" /> Study Mode
-                </Button>
+              {/* Box 1: Learn (Top Left) */}
+              <div className="absolute top-0 left-0 w-[40%] h-[40%] flex items-center justify-center p-2 md:p-6">
+                <Link to="/study" className="block w-full h-full">
+                  <div className="glass-panel w-full h-full rounded-2xl md:rounded-3xl transition-transform duration-300 hover:scale-[1.03] flex flex-col items-center justify-center gap-2 md:gap-4 p-4 text-center shadow-[0_10px_30px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_40px_rgba(57,255,20,0.2)]">
+                    <div className="p-3 bg-[var(--bg-base)] rounded-xl shadow-inner border border-[var(--border-color)]">
+                      <FaBook className="text-2xl md:text-3xl text-[var(--text-main)]" />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-sm md:text-xl mb-1 text-[var(--text-main)]">1. Learn</h3>
+                      <p className="text-[10px] md:text-sm font-bold text-[var(--text-muted)] opacity-80 hidden md:block">AI-powered study</p>
+                    </div>
+                  </div>
+                </Link>
               </div>
+
+              {/* Box 2: Build (Top Right) */}
+              <div className="absolute top-0 right-0 w-[40%] h-[40%] flex items-center justify-center p-2 md:p-6">
+                <Link to="/create-quiz" className="block w-full h-full">
+                  <div className="glass-panel w-full h-full rounded-2xl md:rounded-3xl transition-transform duration-300 hover:scale-[1.03] flex flex-col items-center justify-center gap-2 md:gap-4 p-4 text-center shadow-[0_10px_30px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_40px_rgba(57,255,20,0.2)]">
+                    <div className="p-3 bg-[var(--bg-base)] rounded-xl shadow-inner border border-[var(--border-color)]">
+                      <FaPlus className="text-2xl md:text-3xl text-[var(--text-main)]" />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-sm md:text-xl mb-1 text-[var(--text-main)]">2. Build</h3>
+                      <p className="text-[10px] md:text-sm font-bold text-[var(--text-muted)] opacity-80 hidden md:block">Share knowledge</p>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+
+              {/* Box 3: Compete (Bottom Right) */}
+              <div className="absolute bottom-0 right-0 w-[40%] h-[40%] flex items-center justify-center p-2 md:p-6">
+                <Link to="/leaderboard" className="block w-full h-full">
+                  <div className="glass-panel w-full h-full rounded-2xl md:rounded-3xl transition-transform duration-300 hover:scale-[1.03] flex flex-col items-center justify-center gap-2 md:gap-4 p-4 text-center shadow-[0_10px_30px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_40px_rgba(57,255,20,0.2)]">
+                    <div className="p-3 bg-[var(--bg-base)] rounded-xl shadow-inner border border-[var(--border-color)]">
+                      <FaTrophy className="text-2xl md:text-3xl text-[var(--text-main)]" />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-sm md:text-xl mb-1 text-[var(--text-main)]">3. Compete</h3>
+                      <p className="text-[10px] md:text-sm font-bold text-[var(--text-muted)] opacity-80 hidden md:block">Climb rankings</p>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+
+              {/* Box 4: Connect (Bottom Left) */}
+              <div className="absolute bottom-0 left-0 w-[40%] h-[40%] flex items-center justify-center p-2 md:p-6">
+                <Link to="/browse-quizzes" className="block w-full h-full">
+                  <div className="glass-panel w-full h-full rounded-2xl md:rounded-3xl transition-transform duration-300 hover:scale-[1.03] flex flex-col items-center justify-center gap-2 md:gap-4 p-4 text-center shadow-[0_10px_30px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_40px_rgba(57,255,20,0.2)]">
+                    <div className="p-3 bg-[var(--bg-base)] rounded-xl shadow-inner border border-[var(--border-color)]">
+                      <FaUsers className="text-2xl md:text-3xl text-[var(--text-main)]" />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-sm md:text-xl mb-1 text-[var(--text-main)]">4. Connect</h3>
+                      <p className="text-[10px] md:text-sm font-bold text-[var(--text-muted)] opacity-80 hidden md:block">Play together</p>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+
             </div>
           </motion.div>
         </div>
-
-        {/* Quick Links */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8"
-        >
-          <Link to="/browse-quizzes">
-            <div className="bg-white/80 backdrop-blur-xl rounded-xl shadow-lg p-4 border border-white/20 hover:shadow-xl hover:scale-105 transition-all cursor-pointer">
-              <FaUsers className="text-2xl text-purple-600 mb-2" />
-              <h3 className="font-semibold text-gray-800">Community Quizzes</h3>
-              <p className="text-sm text-gray-500">Play user-created quizzes</p>
-            </div>
-          </Link>
-          <Link to="/leaderboard">
-            <div className="bg-white/80 backdrop-blur-xl rounded-xl shadow-lg p-4 border border-white/20 hover:shadow-xl hover:scale-105 transition-all cursor-pointer">
-              <FaTrophy className="text-2xl text-yellow-500 mb-2" />
-              <h3 className="font-semibold text-gray-800">Leaderboard</h3>
-              <p className="text-sm text-gray-500">See top players</p>
-            </div>
-          </Link>
-          <Link to="/create-quiz">
-            <div className="bg-white/80 backdrop-blur-xl rounded-xl shadow-lg p-4 border border-white/20 hover:shadow-xl hover:scale-105 transition-all cursor-pointer">
-              <FaPlus className="text-2xl text-green-600 mb-2" />
-              <h3 className="font-semibold text-gray-800">Create Quiz</h3>
-              <p className="text-sm text-gray-500">Share your knowledge</p>
-            </div>
-          </Link>
-          <Link to="/study">
-            <div className="bg-white/80 backdrop-blur-xl rounded-xl shadow-lg p-4 border border-white/20 hover:shadow-xl hover:scale-105 transition-all cursor-pointer">
-              <FaBook className="text-2xl text-blue-600 mb-2" />
-              <h3 className="font-semibold text-gray-800">Study Mode</h3>
-              <p className="text-sm text-gray-500">AI-powered flashcards</p>
-            </div>
-          </Link>
-        </motion.div>
       </div>
     </div>
   );

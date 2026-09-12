@@ -86,7 +86,7 @@ export default function Results({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-200 via-sky-100 to-emerald-100 p-4 md:p-8">
+    <div className="min-h-screen p-4 md:p-8">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -102,12 +102,12 @@ export default function Results({
           >
             {gradeInfo.grade}
           </motion.div>
-          <h2 className="text-2xl font-semibold text-gray-800">{gradeInfo.message}</h2>
+          <h2 className="text-2xl font-semibold text-[var(--text-main)]">{gradeInfo.message}</h2>
         </div>
 
         {/* Main Results Card */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-6 md:p-8 border border-white/20 mb-6">
-          <h2 className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-indigo-600 to-purple-600 text-transparent bg-clip-text">
+        <div className="glass-panel rounded-2xl p-6 md:p-8 mb-6">
+          <h2 className="text-3xl font-black text-center mb-8 text-[var(--text-main)]">
             Quiz Results
           </h2>
 
@@ -118,20 +118,20 @@ export default function Results({
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.1 }}
-                className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl"
+                className="flex justify-between items-center p-5 glass-panel border-l-4 border-blue-500 shadow-md"
               >
-                <span className="font-semibold text-blue-700">Total Score</span>
-                <span className="text-2xl font-bold text-blue-700">{score}</span>
+                <span className="font-bold text-[var(--text-muted)] uppercase tracking-wider text-sm">Total Score</span>
+                <span className="text-2xl font-black text-blue-500">{score}</span>
               </motion.div>
 
               <motion.div
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                className="flex justify-between items-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl"
+                className="flex justify-between items-center p-5 glass-panel border-l-4 border-green-500 shadow-md"
               >
-                <span className="font-semibold text-green-700">Correct Answers</span>
-                <span className="text-2xl font-bold text-green-700">
+                <span className="font-bold text-[var(--text-muted)] uppercase tracking-wider text-sm">Correct Answers</span>
+                <span className="text-2xl font-black text-green-500">
                   {correctAnswers}/{totalQuestions}
                 </span>
               </motion.div>
@@ -140,20 +140,20 @@ export default function Results({
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.3 }}
-                className="flex justify-between items-center p-4 bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl"
+                className="flex justify-between items-center p-5 glass-panel border-l-4 border-purple-500 shadow-md"
               >
-                <span className="font-semibold text-purple-700">Accuracy</span>
-                <span className="text-2xl font-bold text-purple-700">{accuracy}%</span>
+                <span className="font-bold text-[var(--text-muted)] uppercase tracking-wider text-sm">Accuracy</span>
+                <span className="text-2xl font-black text-purple-500">{accuracy}%</span>
               </motion.div>
 
               <motion.div
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.4 }}
-                className="flex justify-between items-center p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl"
+                className="flex justify-between items-center p-5 glass-panel border-l-4 border-orange-500 shadow-md"
               >
-                <span className="font-semibold text-orange-700">Time Taken</span>
-                <span className="text-2xl font-bold text-orange-700">
+                <span className="font-bold text-[var(--text-muted)] uppercase tracking-wider text-sm">Time Taken</span>
+                <span className="text-2xl font-black text-orange-500">
                   {mins}m {secs}s
                 </span>
               </motion.div>
@@ -179,10 +179,10 @@ export default function Results({
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-4 mb-6 text-white text-center"
+            className="glass-panel border-t-4 border-[#00A63E] rounded-xl p-5 mb-8 text-center shadow-[0_0_15px_rgba(0,166,62,0.2)]"
           >
-            <p className="text-lg">
-              🎉 You earned <span className="font-bold text-xl">+{score + (correctAnswers * 10)} XP</span>!
+            <p className="text-lg font-bold text-[var(--text-main)]">
+              🎉 You earned <span className="font-black text-[#00A63E] dark:text-[#39FF14] text-xl">+{score + (correctAnswers * 10)} XP</span>!
             </p>
           </motion.div>
         )}
@@ -196,15 +196,14 @@ export default function Results({
         >
           <Button
             onClick={() => navigate('/')}
-            variant="outline"
-            className="flex items-center gap-2"
+            className="btn-secondary flex items-center gap-2"
           >
             <FaHome /> Home
           </Button>
           
           <Button
             onClick={() => navigate('/quiz-setup')}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 flex items-center gap-2"
+            className="btn-primary flex items-center gap-2"
           >
             <FaRedo /> Play Again
           </Button>
@@ -212,8 +211,7 @@ export default function Results({
           {user && (
             <Button
               onClick={() => navigate('/analytics')}
-              variant="outline"
-              className="flex items-center gap-2"
+              className="btn-secondary flex items-center gap-2"
             >
               <FaChartLine /> Analytics
             </Button>
@@ -221,16 +219,14 @@ export default function Results({
 
           <Button
             onClick={() => navigate('/leaderboard')}
-            variant="outline"
-            className="flex items-center gap-2"
+            className="btn-secondary flex items-center gap-2"
           >
             <FaTrophy /> Leaderboard
           </Button>
 
           <Button
             onClick={shareResults}
-            variant="outline"
-            className="flex items-center gap-2"
+            className="btn-secondary flex items-center gap-2"
           >
             <FaShare /> Share
           </Button>
@@ -244,10 +240,10 @@ export default function Results({
             transition={{ delay: 0.7 }}
             className="mt-6 text-center"
           >
-            <p className="text-gray-600 mb-3">
+            <p className="text-[var(--text-muted)] font-medium mb-4">
               Sign in to save your progress and compete on the leaderboard!
             </p>
-            <Button onClick={() => navigate('/register')} variant="outline">
+            <Button onClick={() => navigate('/register')} className="btn-secondary">
               Create Account
             </Button>
           </motion.div>

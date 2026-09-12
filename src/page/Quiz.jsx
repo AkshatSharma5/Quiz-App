@@ -553,13 +553,12 @@ Generate ${amount} questions now:`;
     );
   }
 
-  // Loading screen
   if (isLoading || !quizData) return (
-    <div className="bg-gradient-to-r from-indigo-200 via-sky-100 to-emerald-100 min-h-screen p-8">
-      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6">
+    <div className="min-h-screen p-8">
+      <div className="max-w-4xl mx-auto glass-panel rounded-2xl p-6">
         <div className="text-center mb-6">
-          <div className="text-2xl font-semibold text-gray-700 mb-2">🧠 {loadingMessage}</div>
-          <p className="text-gray-500">Please wait while we prepare your quiz...</p>
+          <div className="text-2xl font-bold text-[var(--text-main)] mb-2">🧠 {loadingMessage}</div>
+          <p className="text-[var(--text-muted)] font-medium">Please wait while we prepare your quiz...</p>
         </div>
         <Skeleton className="h-8 w-1/2 mb-6 mx-auto" />
         <div className="space-y-4">
@@ -576,10 +575,10 @@ Generate ${amount} questions now:`;
   const timeWarning = timeLeft <= 5;
 
   return (
-    <div className="bg-gradient-to-r from-indigo-200 from-10% via-sky-100 via-30% to-emerald-100 to-90% min-h-screen p-4 md:p-8">
+    <div className="min-h-screen p-4 md:p-8">
       <Toaster position="top-right" className="font-spaceGrotesk" />
       
-      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 mb-6 font-poppins">
+      <div className="max-w-4xl mx-auto glass-panel rounded-2xl p-6 mb-8 font-poppins">
         <div className="flex justify-between items-center mb-6 md:flex-row flex-col gap-4">
           <div className="flex items-center gap-4 flex-wrap">
             <div className="bg-red-100 lg:px-4 lg:py-2 p-2 rounded-lg text-sm">
@@ -612,10 +611,10 @@ Generate ${amount} questions now:`;
           </div>
           
           <div className="space-y-2 text-sm">
-            <div className="bg-green-600 text-white lg:px-4 text-center lg:py-2 p-1 rounded-lg font-bold font-poppins text-sm">
+            <div className="bg-green-600 text-white lg:px-4 text-center lg:py-2 p-1 rounded-lg font-bold font-poppins text-sm shadow-[0_0_10px_rgba(22,163,74,0.5)]">
               Score: {score}
             </div>
-            <div className="text-sm text-gray-600">
+            <div className="text-sm font-bold text-[var(--text-muted)]">
               Question {currentQuestionIndex + 1}/{quizData.length}
             </div>
           </div>
@@ -640,7 +639,7 @@ Generate ${amount} questions now:`;
             </span>
           </div>
 
-          <h2 className="text-[17px] md:text-xl font-semibold text-gray-800 font-spaceGrotesk animate__animated animate__bounceIn">
+          <h2 className="text-[17px] md:text-xl font-bold text-[var(--text-main)] font-spaceGrotesk animate__animated animate__bounceIn">
             {currentQuestion.description}
           </h2>
           
@@ -649,12 +648,12 @@ Generate ${amount} questions now:`;
               <button
                 key={option.id}
                 onClick={() => handleAnswer(option)}
-                className={`p-4 rounded-lg text-left animate__animated animate__bounceIn transition-all
+                className={`p-4 rounded-xl text-left animate__animated animate__bounceIn transition-all font-medium border-2
                   ${selectedOption === option.id 
                     ? option.is_correct 
-                      ? 'bg-green-100 border-2 border-green-500' 
-                      : 'bg-red-100 border-2 border-red-500'
-                    : 'bg-gray-50 hover:bg-blue-50'}
+                      ? 'bg-green-500/10 border-green-500 text-green-500 shadow-[0_0_15px_rgba(34,197,94,0.2)]' 
+                      : 'bg-red-500/10 border-red-500 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]'
+                    : 'bg-[var(--bg-base)] text-[var(--text-main)] hover:bg-[var(--bg-surface)] hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] border-[var(--border-color)]'}
                   ${selectedOption && option.is_correct ? 'border-2 border-green-500' : ''}`}
                 disabled={selectedOption !== null}
               >
@@ -672,11 +671,11 @@ Generate ${amount} questions now:`;
 
       {/* Progress bar */}
       <div className="max-w-4xl mx-auto">
-        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-3 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-full overflow-hidden shadow-inner">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${((currentQuestionIndex + 1) / quizData.length) * 100}%` }}
-            className="h-full bg-gradient-to-r from-indigo-500 to-purple-500"
+            className="h-full bg-[#00A63E] shadow-[0_0_15px_rgba(0,166,62,0.8)]"
           />
         </div>
       </div>

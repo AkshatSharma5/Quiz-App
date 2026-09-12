@@ -33,39 +33,40 @@ export default function QuizSetup() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-200 via-sky-100 to-emerald-100 p-4 md:p-8">
-      <Toaster position="top-center" />
+    <div className="min-h-[92vh] p-4 md:p-8">
+      <Toaster position="top-center" toastOptions={{ style: { background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--border-color)' } }} />
       
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
         className="max-w-4xl mx-auto"
       >
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-transparent bg-clip-text mb-2">
-            Quiz Setup
+        <div className="text-center mb-10">
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-[var(--text-main)] mb-2">
+            QUIZ SETUP.
           </h1>
-          <p className="text-gray-600">Customize your quiz experience</p>
+          <p className="text-[var(--text-muted)] font-medium">Customize your quiz experience</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* Category Selection */}
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-white/20">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          <div className="glass-panel rounded-2xl p-6">
+            <h2 className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider mb-4 flex items-center gap-2">
               📚 Category
             </h2>
-            <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-2">
+            <div className="grid grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2">
               {QUIZ_CATEGORIES.map((category) => (
                 <button
                   key={category.id}
                   onClick={() => setConfig(prev => ({ ...prev, category: category.id }))}
-                  className={`p-3 rounded-lg text-left transition-all text-sm ${
+                  className={`p-4 rounded-xl text-left transition-all text-sm font-bold flex items-center border ${
                     config.category === category.id
-                      ? 'bg-indigo-500 text-white shadow-lg scale-[1.02]'
-                      : 'bg-gray-50 hover:bg-indigo-50'
+                      ? 'bg-[var(--text-main)] text-[var(--bg-surface)] border-[var(--text-main)] scale-[1.02]'
+                      : 'bg-[var(--bg-base)] text-[var(--text-main)] border-[var(--border-color)] hover:border-[#00A63E] dark:hover:border-[#39FF14]'
                   }`}
                 >
-                  <span className="mr-2">{category.icon}</span>
+                  <span className="mr-2 text-lg">{category.icon}</span>
                   {category.name}
                 </button>
               ))}
@@ -73,8 +74,8 @@ export default function QuizSetup() {
           </div>
 
           {/* Difficulty Selection */}
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-white/20">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          <div className="glass-panel rounded-2xl p-6">
+            <h2 className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider mb-4 flex items-center gap-2">
               🎯 Difficulty
             </h2>
             <div className="space-y-3">
@@ -82,16 +83,16 @@ export default function QuizSetup() {
                 <button
                   key={level.id}
                   onClick={() => setConfig(prev => ({ ...prev, difficulty: level.id }))}
-                  className={`w-full p-4 rounded-lg text-left transition-all flex items-center justify-between ${
+                  className={`w-full p-4 rounded-xl text-left transition-all flex items-center justify-between border font-bold ${
                     config.difficulty === level.id
-                      ? 'bg-indigo-500 text-white shadow-lg'
-                      : 'bg-gray-50 hover:bg-indigo-50'
+                      ? 'bg-[var(--text-main)] text-[var(--bg-surface)] border-[var(--text-main)] scale-[1.02]'
+                      : 'bg-[var(--bg-base)] text-[var(--text-main)] border-[var(--border-color)] hover:border-[#00A63E] dark:hover:border-[#39FF14]'
                   }`}
                 >
-                  <span className="font-medium">{level.name}</span>
+                  <span>{level.name}</span>
                   {level.points && (
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      config.difficulty === level.id ? 'bg-white/20' : level.color + ' text-white'
+                    <span className={`px-2 py-1 rounded text-xs font-bold ${
+                      config.difficulty === level.id ? 'bg-[var(--bg-surface)] text-[var(--text-main)]' : 'bg-[var(--text-main)] text-[var(--bg-surface)]'
                     }`}>
                       +{level.points} pts
                     </span>
@@ -102,8 +103,8 @@ export default function QuizSetup() {
           </div>
 
           {/* Question Count */}
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-white/20">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          <div className="glass-panel rounded-2xl p-6">
+            <h2 className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider mb-4 flex items-center gap-2">
               🔢 Number of Questions
             </h2>
             <div className="flex flex-wrap gap-3">
@@ -111,10 +112,10 @@ export default function QuizSetup() {
                 <button
                   key={num}
                   onClick={() => setConfig(prev => ({ ...prev, amount: num }))}
-                  className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+                  className={`px-5 py-3 rounded-xl font-bold transition-all border ${
                     config.amount === num
-                      ? 'bg-indigo-500 text-white shadow-lg scale-105'
-                      : 'bg-gray-50 hover:bg-indigo-50'
+                      ? 'bg-[var(--text-main)] text-[var(--bg-surface)] border-[var(--text-main)] scale-105'
+                      : 'bg-[var(--bg-base)] text-[var(--text-main)] border-[var(--border-color)] hover:border-[#00A63E] dark:hover:border-[#39FF14]'
                   }`}
                 >
                   {num}
@@ -122,7 +123,7 @@ export default function QuizSetup() {
               ))}
             </div>
 
-            <h2 className="text-xl font-semibold mt-6 mb-4 flex items-center gap-2">
+            <h2 className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider mt-8 mb-4 flex items-center gap-2">
               ⏱️ Time Per Question
             </h2>
             <div className="flex flex-wrap gap-3">
@@ -130,10 +131,10 @@ export default function QuizSetup() {
                 <button
                   key={sec}
                   onClick={() => setConfig(prev => ({ ...prev, timePerQuestion: sec }))}
-                  className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+                  className={`px-5 py-3 rounded-xl font-bold transition-all border ${
                     config.timePerQuestion === sec
-                      ? 'bg-indigo-500 text-white shadow-lg scale-105'
-                      : 'bg-gray-50 hover:bg-indigo-50'
+                      ? 'bg-[var(--text-main)] text-[var(--bg-surface)] border-[var(--text-main)] scale-105'
+                      : 'bg-[var(--bg-base)] text-[var(--text-main)] border-[var(--border-color)] hover:border-[#00A63E] dark:hover:border-[#39FF14]'
                   }`}
                 >
                   {sec}s
@@ -143,8 +144,8 @@ export default function QuizSetup() {
           </div>
 
           {/* Quiz Mode */}
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-white/20">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          <div className="glass-panel rounded-2xl p-6">
+            <h2 className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider mb-4 flex items-center gap-2">
               🎮 Quiz Mode
             </h2>
             <div className="space-y-3">
@@ -152,21 +153,23 @@ export default function QuizSetup() {
                 <button
                   key={mode.id}
                   onClick={() => setConfig(prev => ({ ...prev, mode: mode.id }))}
-                  className={`w-full p-4 rounded-lg text-left transition-all ${
+                  className={`w-full p-4 rounded-xl text-left transition-all border ${
                     config.mode === mode.id
-                      ? 'bg-indigo-500 text-white shadow-lg'
-                      : 'bg-gray-50 hover:bg-indigo-50'
+                      ? 'bg-[var(--text-main)] text-[var(--bg-surface)] border-[var(--text-main)] scale-[1.02]'
+                      : 'bg-[var(--bg-base)] text-[var(--text-main)] border-[var(--border-color)] hover:border-[#00A63E] dark:hover:border-[#39FF14]'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">{mode.icon}</span>
-                    <span className="font-semibold">{mode.name}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{mode.icon}</span>
+                    <div>
+                      <div className="font-bold">{mode.name}</div>
+                      <div className={`text-xs mt-1 font-medium ${
+                        config.mode === mode.id ? 'text-[var(--bg-surface)] opacity-80' : 'text-[var(--text-muted)]'
+                      }`}>
+                        {mode.description}
+                      </div>
+                    </div>
                   </div>
-                  <p className={`text-sm mt-1 ${
-                    config.mode === mode.id ? 'text-white/80' : 'text-gray-500'
-                  }`}>
-                    {mode.description}
-                  </p>
                 </button>
               ))}
             </div>
@@ -175,42 +178,42 @@ export default function QuizSetup() {
 
         {/* Summary & Start Button */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="mt-8 bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-white/20"
+          className="mt-8 glass-panel rounded-3xl p-6 border border-[#00A63E] dark:border-[#39FF14]"
         >
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-4 text-sm">
-              <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex flex-wrap justify-center md:justify-start items-center gap-3 text-sm font-bold">
+              <span className="bg-[var(--text-main)] text-[var(--bg-surface)] px-3 py-1.5 rounded-full">
                 {getCategoryIcon(config.category)} {QUIZ_CATEGORIES.find(c => c.id === config.category)?.name}
               </span>
-              <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full">
-                {config.difficulty || 'Any'} Difficulty
+              <span className="bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)] px-3 py-1.5 rounded-full">
+                {config.difficulty || 'Any'} Diff
               </span>
-              <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full">
-                {config.amount} Questions
+              <span className="bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)] px-3 py-1.5 rounded-full">
+                {config.amount} Qs
               </span>
-              <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full">
-                {config.timePerQuestion}s per question
+              <span className="bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)] px-3 py-1.5 rounded-full">
+                {config.timePerQuestion}s/Q
               </span>
-              <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
+              <span className="bg-[var(--bg-base)] border border-[var(--border-color)] text-[#00A63E] dark:text-[#39FF14] px-3 py-1.5 rounded-full">
                 {QUIZ_MODES.find(m => m.id === config.mode)?.icon} {QUIZ_MODES.find(m => m.id === config.mode)?.name}
               </span>
             </div>
 
-            <Button
+            <button
               onClick={handleStartQuiz}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-3 rounded-full font-bold text-lg shadow-lg hover:scale-105 transition-all"
+              className="btn-primary px-10 py-4 text-lg w-full md:w-auto flex items-center justify-center gap-2 font-extrabold"
             >
-              Start Quiz! 🚀
-            </Button>
+              START QUIZ 🚀
+            </button>
           </div>
         </motion.div>
 
         {!user && (
-          <p className="text-center text-gray-500 mt-4 text-sm">
-            💡 Sign in to save your progress and compete on the leaderboard!
+          <p className="text-center text-[var(--text-muted)] font-medium mt-6 text-sm">
+            Sign in to save your progress and compete on the leaderboard.
           </p>
         )}
       </motion.div>
