@@ -104,11 +104,22 @@ export default function Navbar() {
 
             <button 
               onClick={toggleTheme} 
-              className="w-9 h-9 flex items-center justify-center rounded-full bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)] hover:border-[var(--text-muted)] transition-all"
+              className="px-3 h-9 flex items-center justify-center gap-2 rounded-full bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)] hover:border-[var(--text-muted)] transition-all"
               aria-label="Toggle Theme"
             >
-              {theme === 'light' ? <FaMoon className="text-sm" /> : <FaSun className="text-sm" />}
+              {theme === 'light' ? (
+                <><FaMoon className="text-sm" /><span className="text-xs font-bold hidden sm:inline">Dark</span></>
+              ) : (
+                <><FaSun className="text-sm" /><span className="text-xs font-bold hidden sm:inline">Light</span></>
+              )}
             </button>
+
+            <a href="https://github.com/AkshatSharma5/Quiz-App" target="_blank" rel="noopener noreferrer" className="hidden sm:flex w-9 h-9 items-center justify-center rounded-full bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)] hover:border-[var(--text-muted)] hover:text-[#333] dark:hover:text-white transition-all">
+              <FaGithub className="text-base" />
+            </a>
+            <a href="https://linkedin.com/in/akshat7" target="_blank" rel="noopener noreferrer" className="hidden sm:flex w-9 h-9 items-center justify-center rounded-full bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)] hover:border-[#0077b5] hover:text-[#0077b5] transition-all">
+              <FaLinkedin className="text-base" />
+            </a>
             
             {user ? (
               <DropdownMenu>

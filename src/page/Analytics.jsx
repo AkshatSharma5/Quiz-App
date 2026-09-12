@@ -162,7 +162,7 @@ export default function Analytics() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-[var(--text-main)] title-glow">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-[var(--text-main)] mb-2 title-glow">
               Analytics Dashboard<span className="text-[#00A63E] dark:text-[#39FF14]">.</span>
             </h1>
             <p className="text-[var(--text-muted)] font-medium mt-1">Track your learning progress</p>

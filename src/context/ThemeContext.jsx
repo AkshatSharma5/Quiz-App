@@ -13,7 +13,7 @@ export function ThemeProvider({ children }) {
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       return 'dark';
     }
-    return 'light'; // Default to light mode for the GenZ aesthetic if no preference
+    return 'dark'; // Default to dark mode
   });
 
   useEffect(() => {

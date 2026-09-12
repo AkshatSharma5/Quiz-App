@@ -100,7 +100,7 @@ export default function Leaderboard() {
         className="max-w-3xl mx-auto"
       >
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-black text-[var(--text-main)] mb-2 title-glow">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-[var(--text-main)] mb-2 title-glow">
             🏆 Leaderboard
           </h1>
           <p className="text-[var(--text-muted)] font-medium">See how you stack up against other players!</p>

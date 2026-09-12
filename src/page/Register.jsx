@@ -70,7 +70,7 @@ export default function Register() {
       >
         <div className="glass-panel rounded-3xl p-8 md:p-10">
           <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[var(--text-main)] mb-2 title-glow">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-[var(--text-main)] mb-2 title-glow">
               JOIN US.
             </h1>
             <p className="text-[var(--text-muted)] font-medium">Create an account to start learning</p>

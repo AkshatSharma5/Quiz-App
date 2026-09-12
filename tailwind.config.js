@@ -16,6 +16,7 @@ export default {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		fontFamily: {
+  			outfit: ['Outfit', 'Space Grotesk', 'sans-serif'],
   			bioRhyme: [
   				'BioRhyme',
   				'serif'

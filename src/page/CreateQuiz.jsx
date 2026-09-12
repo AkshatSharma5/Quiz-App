@@ -234,7 +234,7 @@ export default function CreateQuiz() {
         className="max-w-4xl mx-auto"
       >
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-black text-[var(--text-main)] title-glow">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-[var(--text-main)] mb-2 title-glow">
             ✏️ Create Quiz
           </h1>
           <div className="flex gap-2">

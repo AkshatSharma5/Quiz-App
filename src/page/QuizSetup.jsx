@@ -43,7 +43,7 @@ export default function QuizSetup() {
         className="max-w-4xl mx-auto"
       >
         <div className="text-center mb-10">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-[var(--text-main)] mb-2 title-glow">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-[var(--text-main)] mb-2 title-glow">
             QUIZ SETUP.
           </h1>
           <p className="text-[var(--text-muted)] font-medium">Customize your quiz experience</p>

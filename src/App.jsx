@@ -25,8 +25,6 @@ function App() {
           <div className="app-container font-sans bg-[var(--bg-base)] text-[var(--text-main)] transition-colors duration-300">
             <div className="gladia-bg"></div>
             <div className="neon-smoke-bubble"></div>
-            <div className="shooting-star"></div>
-            <div className="shooting-star delayed"></div>
             {/* Only show NetworkBackground on Home page for performance/clarity, or keep it global if desired. I'll keep it global but faded. */}
             <div className="fixed inset-0 z-[-1] opacity-40 mix-blend-screen pointer-events-none">
               <NetworkBackground />

@@ -101,7 +101,7 @@ export default function BrowseQuizzes() {
         className="max-w-6xl mx-auto"
       >
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-black text-[var(--text-main)] mb-2 title-glow">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-[var(--text-main)] mb-2 title-glow">
             🌍 Community Quizzes
           </h1>
           <p className="text-gray-600">Discover and play quizzes created by the community</p>

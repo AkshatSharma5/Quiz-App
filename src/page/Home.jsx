@@ -22,6 +22,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import DailyChallenge from "@/components/DailyChallenge";
 import StreakTracker from "@/components/StreakTracker";
+import FeatureAccordion from "@/components/FeatureAccordion";
 import chatbot from "../assets/chatbot.gif";
 import study from "../assets/study.gif";
 import { FaPlay, FaBook, FaUsers, FaTrophy, FaPlus } from "react-icons/fa";
@@ -37,6 +38,15 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const [topUsers, setTopUsers] = useState([]);
+  const [showStar, setShowStar] = useState(false);
+
+  useEffect(() => {
+    if (!sessionStorage.getItem("starShown")) {
+      setShowStar(true);
+      sessionStorage.setItem("starShown", "true");
+      setTimeout(() => setShowStar(false), 6000);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchTopUsers = async () => {
@@ -112,8 +122,16 @@ export default function Home() {
     <div className="w-full pt-8 pb-16 px-4 md:px-6 relative overflow-hidden">
       <Toaster position="top-center" toastOptions={{ style: { background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--border-color)' } }} />
       
-      {/* Massive Arc Background Element */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150vw] h-[150vw] md:w-[120vw] md:h-[120vw] rounded-full border-[1px] border-[var(--border-color)] opacity-40 pointer-events-none -translate-y-[80%] z-0 drop-shadow-[0_0_15px_rgba(57,255,20,0.2)]"></div>
+      {showStar && (
+        <div className="shooting-star-container">
+          <div className="shooting-star-main"></div>
+          <div className="shooting-star-child"></div>
+          <div className="shooting-star-sparkle"></div>
+        </div>
+      )}
+
+      {/* Massive Arc Background Element (Inverted) */}
+      <div className="absolute top-[-2rem] md:top-[-4rem] left-1/2 -translate-x-1/2 w-[250vw] h-[250vw] md:w-[180vw] md:h-[180vw] rounded-full border-t-[1px] border-l-0 border-r-0 border-b-0 border-[var(--border-color)] dark:border-[#39FF14]/50 opacity-40 dark:opacity-100 pointer-events-none z-0 drop-shadow-[0_0_15px_rgba(57,255,20,0.3)] dark:drop-shadow-[0_0_25px_rgba(57,255,20,0.6)]"></div>
       
       {/* Massive Hero Section */}
       <div className="max-w-[1000px] mx-auto text-center mb-32 relative z-10">
@@ -122,9 +140,9 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-[var(--text-main)] mb-6 leading-tight">
-            Advanced Learning <br className="hidden md:block" />
-            <span className="text-[#00A63E] dark:text-[#39FF14]">Infrastructure</span>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-outfit font-bold tracking-tight text-[var(--text-main)] mb-6 leading-tight animate-tubelight opacity-0">
+            Your one-stop solution to <br className="hidden md:block" />
+            <span className="text-[#00A63E] dark:text-[#39FF14] font-medium drop-shadow-[0_0_15px_rgba(57,255,20,0.5)]">AI Powered Quizzes and Learning Platform</span>
           </h1>
           <p className="text-[var(--text-muted)] text-xl md:text-2xl font-semibold mb-12 max-w-2xl mx-auto leading-relaxed min-h-[60px] md:min-h-[80px]">
             <Typewriter
@@ -170,7 +188,9 @@ export default function Home() {
                     <img src={u.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${u.displayName || 'User'}&backgroundColor=000000`} alt="User avatar" className="w-full h-full object-cover" />
                   </div>
                   <div className="text-left">
-                    <div className="font-bold text-[var(--text-main)]">{u.displayName?.split(' ')[0] || 'User'}</div>
+                    <div className="font-bold text-[var(--text-main)]">
+                      {i === 2 ? 'LitUp' : (u.displayName?.split(' ')[0] || 'User')}
+                    </div>
                     <div className="text-xs text-[var(--text-muted)] font-semibold">Lvl {u.level || 1}</div>
                   </div>
                 </div>
@@ -178,6 +198,19 @@ export default function Home() {
                 <div className="text-[var(--text-muted)] text-sm font-medium animate-pulse">Loading top learners...</div>
               )}
             </div>
+          </div>
+
+          {/* What We Provide Section */}
+          <div className="mt-32 mb-20 text-left max-w-7xl mx-auto px-4 md:px-8">
+            <motion.h2 
+              initial={{ opacity: 0, y: -20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-4xl md:text-5xl font-black tracking-tight text-[var(--text-main)] mb-16 text-center"
+            >
+              What we provide
+            </motion.h2>
+            <FeatureAccordion />
           </div>
         </motion.div>
       </div>
@@ -317,7 +350,7 @@ export default function Home() {
               <div className="mb-4">
                 <button
                   onClick={handleSuggestionClick}
-                  className="text-xs font-medium text-[var(--text-muted)] hover:text-[#00A63E] dark:hover:text-[#39FF14] transition-colors"
+                  className="text-base font-medium text-[var(--text-muted)] hover:text-[#00A63E] dark:hover:text-[#39FF14] transition-colors"
                 >
                   Suggestion: "How to upskill myself by evaluating through quizzes"
                 </button>
@@ -382,60 +415,60 @@ export default function Home() {
               </svg>
 
               {/* Box 1: Learn (Top Left) */}
-              <div className="absolute top-0 left-0 w-[40%] h-[40%] flex items-center justify-center p-2 md:p-6 animate-float-1">
+              <div className="absolute top-0 left-0 w-[45%] h-[45%] flex items-center justify-center p-1 md:p-3 animate-float-1">
                 <Link to="/study" className="block w-full h-full">
-                  <div className="glass-panel border-transparent w-full h-full rounded-2xl md:rounded-3xl transition-transform duration-300 hover:scale-[1.03] flex flex-col items-center justify-center gap-2 md:gap-4 p-4 text-center shadow-[0_10px_30px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_40px_rgba(57,255,20,0.2)]">
+                  <div className="glass-panel border-[1px] border-[rgba(57,255,20,0.3)] bg-gradient-to-br from-[rgba(57,255,20,0.1)] to-transparent w-full h-full rounded-2xl md:rounded-3xl transition-transform duration-300 hover:scale-[1.03] flex flex-col items-center justify-center gap-2 md:gap-4 p-4 md:p-6 lg:p-8 text-center shadow-[0_10px_30px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_40px_rgba(57,255,20,0.3)]">
                     <div className="p-3 bg-[var(--bg-base)] rounded-xl shadow-inner border border-[var(--border-color)]">
                       <FaBook className="text-2xl md:text-3xl text-[var(--text-main)]" />
                     </div>
                     <div>
-                      <h3 className="font-black text-sm md:text-xl mb-1 text-[var(--text-main)]">1. Learn</h3>
-                      <p className="text-[10px] md:text-sm font-bold text-[var(--text-muted)] opacity-80 hidden md:block">AI-powered study</p>
+                      <h3 className="font-black text-sm md:text-xl lg:text-2xl mb-1 text-[var(--text-main)]">1. Learn</h3>
+                      <p className="text-[10px] md:text-sm lg:text-base font-bold text-[var(--text-muted)] opacity-80 hidden md:block">AI-powered study</p>
                     </div>
                   </div>
                 </Link>
               </div>
 
               {/* Box 2: Build (Top Right) */}
-              <div className="absolute top-0 right-0 w-[40%] h-[40%] flex items-center justify-center p-2 md:p-6 animate-float-2">
+              <div className="absolute top-0 right-0 w-[45%] h-[45%] flex items-center justify-center p-1 md:p-3 animate-float-2">
                 <Link to="/create-quiz" className="block w-full h-full">
-                  <div className="glass-panel border-transparent w-full h-full rounded-2xl md:rounded-3xl transition-transform duration-300 hover:scale-[1.03] flex flex-col items-center justify-center gap-2 md:gap-4 p-4 text-center shadow-[0_10px_30px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_40px_rgba(57,255,20,0.2)]">
+                  <div className="glass-panel border-[1px] border-[rgba(57,255,20,0.3)] bg-gradient-to-br from-[rgba(57,255,20,0.1)] to-transparent w-full h-full rounded-2xl md:rounded-3xl transition-transform duration-300 hover:scale-[1.03] flex flex-col items-center justify-center gap-2 md:gap-4 p-4 md:p-6 lg:p-8 text-center shadow-[0_10px_30px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_40px_rgba(57,255,20,0.3)]">
                     <div className="p-3 bg-[var(--bg-base)] rounded-xl shadow-inner border border-[var(--border-color)]">
                       <FaPlus className="text-2xl md:text-3xl text-[var(--text-main)]" />
                     </div>
                     <div>
-                      <h3 className="font-black text-sm md:text-xl mb-1 text-[var(--text-main)]">2. Build</h3>
-                      <p className="text-[10px] md:text-sm font-bold text-[var(--text-muted)] opacity-80 hidden md:block">Share knowledge</p>
+                      <h3 className="font-black text-sm md:text-xl lg:text-2xl mb-1 text-[var(--text-main)]">2. Build</h3>
+                      <p className="text-[10px] md:text-sm lg:text-base font-bold text-[var(--text-muted)] opacity-80 hidden md:block">Share knowledge</p>
                     </div>
                   </div>
                 </Link>
               </div>
 
               {/* Box 3: Compete (Bottom Right) */}
-              <div className="absolute bottom-0 right-0 w-[40%] h-[40%] flex items-center justify-center p-2 md:p-6 animate-float-3">
+              <div className="absolute bottom-0 right-0 w-[45%] h-[45%] flex items-center justify-center p-1 md:p-3 animate-float-3">
                 <Link to="/leaderboard" className="block w-full h-full">
-                  <div className="glass-panel border-transparent w-full h-full rounded-2xl md:rounded-3xl transition-transform duration-300 hover:scale-[1.03] flex flex-col items-center justify-center gap-2 md:gap-4 p-4 text-center shadow-[0_10px_30px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_40px_rgba(57,255,20,0.2)]">
+                  <div className="glass-panel border-[1px] border-[rgba(57,255,20,0.3)] bg-gradient-to-br from-[rgba(57,255,20,0.1)] to-transparent w-full h-full rounded-2xl md:rounded-3xl transition-transform duration-300 hover:scale-[1.03] flex flex-col items-center justify-center gap-2 md:gap-4 p-4 md:p-6 lg:p-8 text-center shadow-[0_10px_30px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_40px_rgba(57,255,20,0.3)]">
                     <div className="p-3 bg-[var(--bg-base)] rounded-xl shadow-inner border border-[var(--border-color)]">
                       <FaTrophy className="text-2xl md:text-3xl text-[var(--text-main)]" />
                     </div>
                     <div>
-                      <h3 className="font-black text-sm md:text-xl mb-1 text-[var(--text-main)]">3. Compete</h3>
-                      <p className="text-[10px] md:text-sm font-bold text-[var(--text-muted)] opacity-80 hidden md:block">Climb rankings</p>
+                      <h3 className="font-black text-sm md:text-xl lg:text-2xl mb-1 text-[var(--text-main)]">3. Compete</h3>
+                      <p className="text-[10px] md:text-sm lg:text-base font-bold text-[var(--text-muted)] opacity-80 hidden md:block">Climb rankings</p>
                     </div>
                   </div>
                 </Link>
               </div>
 
               {/* Box 4: Connect (Bottom Left) */}
-              <div className="absolute bottom-0 left-0 w-[40%] h-[40%] flex items-center justify-center p-2 md:p-6 animate-float-4">
+              <div className="absolute bottom-0 left-0 w-[45%] h-[45%] flex items-center justify-center p-1 md:p-3 animate-float-4">
                 <Link to="/browse-quizzes" className="block w-full h-full">
-                  <div className="glass-panel border-transparent w-full h-full rounded-2xl md:rounded-3xl transition-transform duration-300 hover:scale-[1.03] flex flex-col items-center justify-center gap-2 md:gap-4 p-4 text-center shadow-[0_10px_30px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_40px_rgba(57,255,20,0.2)]">
+                  <div className="glass-panel border-[1px] border-[rgba(57,255,20,0.3)] bg-gradient-to-br from-[rgba(57,255,20,0.1)] to-transparent w-full h-full rounded-2xl md:rounded-3xl transition-transform duration-300 hover:scale-[1.03] flex flex-col items-center justify-center gap-2 md:gap-4 p-4 md:p-6 lg:p-8 text-center shadow-[0_10px_30px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_40px_rgba(57,255,20,0.3)]">
                     <div className="p-3 bg-[var(--bg-base)] rounded-xl shadow-inner border border-[var(--border-color)]">
                       <FaUsers className="text-2xl md:text-3xl text-[var(--text-main)]" />
                     </div>
                     <div>
-                      <h3 className="font-black text-sm md:text-xl mb-1 text-[var(--text-main)]">4. Connect</h3>
-                      <p className="text-[10px] md:text-sm font-bold text-[var(--text-muted)] opacity-80 hidden md:block">Play together</p>
+                      <h3 className="font-black text-sm md:text-xl lg:text-2xl mb-1 text-[var(--text-main)]">4. Connect</h3>
+                      <p className="text-[10px] md:text-sm lg:text-base font-bold text-[var(--text-muted)] opacity-80 hidden md:block">Play together</p>
                     </div>
                   </div>
                 </Link>
