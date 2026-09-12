@@ -104,7 +104,7 @@ export default function MyQuizzes() {
       >
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-black text-[var(--text-main)] mb-2">
+            <h1 className="text-3xl font-black text-[var(--text-main)] mb-2 title-glow">
               📝 My Quizzes
             </h1>
             <p className="text-[var(--text-muted)] font-medium mt-1">Manage your created quizzes</p>

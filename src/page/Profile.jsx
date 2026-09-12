@@ -119,7 +119,7 @@ export default function Profile() {
                 </div>
               ) : (
                 <div className="flex items-center gap-2 justify-center md:justify-start">
-                  <h1 className="text-2xl md:text-3xl font-black text-[var(--text-main)]">
+                  <h1 className="text-2xl md:text-3xl font-black text-[var(--text-main)] title-glow">
                     {userProfile.displayName}
                   </h1>
                   <button onClick={() => setIsEditing(true)} className="text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">

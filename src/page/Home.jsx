@@ -109,8 +109,11 @@ export default function Home() {
   };
 
   return (
-    <div className="w-full pt-32 pb-16 px-4 md:px-6 relative">
+    <div className="w-full pt-8 pb-16 px-4 md:px-6 relative overflow-hidden">
       <Toaster position="top-center" toastOptions={{ style: { background: 'var(--bg-surface)', color: 'var(--text-main)', border: '1px solid var(--border-color)' } }} />
+      
+      {/* Massive Arc Background Element */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150vw] h-[150vw] md:w-[120vw] md:h-[120vw] rounded-full border-[1px] border-[var(--border-color)] opacity-40 pointer-events-none -translate-y-[80%] z-0 drop-shadow-[0_0_15px_rgba(57,255,20,0.2)]"></div>
       
       {/* Massive Hero Section */}
       <div className="max-w-[1000px] mx-auto text-center mb-32 relative z-10">
@@ -354,14 +357,14 @@ export default function Home() {
                 <path 
                   d="M 0 0 L 40 0 L 40 18 L 60 18 L 60 0 L 100 0 L 100 40 L 82 40 L 82 60 L 100 60 L 100 100 L 60 100 L 60 82 L 40 82 L 40 100 L 0 100 L 0 60 L 18 60 L 18 40 L 0 40 Z" 
                   fill="none" 
-                  stroke="var(--border-color)" 
+                  stroke="transparent" 
                   strokeWidth="2" 
                   vectorEffect="non-scaling-stroke" 
                 />
                 <path 
                   d="M 40 22 L 40 40 L 22 40 L 22 60 L 40 60 L 40 78 L 60 78 L 60 60 L 78 60 L 78 40 L 60 40 L 60 22 Z" 
                   fill="none" 
-                  stroke="var(--border-color)" 
+                  stroke="transparent" 
                   strokeWidth="2" 
                   vectorEffect="non-scaling-stroke" 
                 />
@@ -379,9 +382,9 @@ export default function Home() {
               </svg>
 
               {/* Box 1: Learn (Top Left) */}
-              <div className="absolute top-0 left-0 w-[40%] h-[40%] flex items-center justify-center p-2 md:p-6">
+              <div className="absolute top-0 left-0 w-[40%] h-[40%] flex items-center justify-center p-2 md:p-6 animate-float-1">
                 <Link to="/study" className="block w-full h-full">
-                  <div className="glass-panel w-full h-full rounded-2xl md:rounded-3xl transition-transform duration-300 hover:scale-[1.03] flex flex-col items-center justify-center gap-2 md:gap-4 p-4 text-center shadow-[0_10px_30px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_40px_rgba(57,255,20,0.2)]">
+                  <div className="glass-panel border-transparent w-full h-full rounded-2xl md:rounded-3xl transition-transform duration-300 hover:scale-[1.03] flex flex-col items-center justify-center gap-2 md:gap-4 p-4 text-center shadow-[0_10px_30px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_40px_rgba(57,255,20,0.2)]">
                     <div className="p-3 bg-[var(--bg-base)] rounded-xl shadow-inner border border-[var(--border-color)]">
                       <FaBook className="text-2xl md:text-3xl text-[var(--text-main)]" />
                     </div>
@@ -394,9 +397,9 @@ export default function Home() {
               </div>
 
               {/* Box 2: Build (Top Right) */}
-              <div className="absolute top-0 right-0 w-[40%] h-[40%] flex items-center justify-center p-2 md:p-6">
+              <div className="absolute top-0 right-0 w-[40%] h-[40%] flex items-center justify-center p-2 md:p-6 animate-float-2">
                 <Link to="/create-quiz" className="block w-full h-full">
-                  <div className="glass-panel w-full h-full rounded-2xl md:rounded-3xl transition-transform duration-300 hover:scale-[1.03] flex flex-col items-center justify-center gap-2 md:gap-4 p-4 text-center shadow-[0_10px_30px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_40px_rgba(57,255,20,0.2)]">
+                  <div className="glass-panel border-transparent w-full h-full rounded-2xl md:rounded-3xl transition-transform duration-300 hover:scale-[1.03] flex flex-col items-center justify-center gap-2 md:gap-4 p-4 text-center shadow-[0_10px_30px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_40px_rgba(57,255,20,0.2)]">
                     <div className="p-3 bg-[var(--bg-base)] rounded-xl shadow-inner border border-[var(--border-color)]">
                       <FaPlus className="text-2xl md:text-3xl text-[var(--text-main)]" />
                     </div>
@@ -409,9 +412,9 @@ export default function Home() {
               </div>
 
               {/* Box 3: Compete (Bottom Right) */}
-              <div className="absolute bottom-0 right-0 w-[40%] h-[40%] flex items-center justify-center p-2 md:p-6">
+              <div className="absolute bottom-0 right-0 w-[40%] h-[40%] flex items-center justify-center p-2 md:p-6 animate-float-3">
                 <Link to="/leaderboard" className="block w-full h-full">
-                  <div className="glass-panel w-full h-full rounded-2xl md:rounded-3xl transition-transform duration-300 hover:scale-[1.03] flex flex-col items-center justify-center gap-2 md:gap-4 p-4 text-center shadow-[0_10px_30px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_40px_rgba(57,255,20,0.2)]">
+                  <div className="glass-panel border-transparent w-full h-full rounded-2xl md:rounded-3xl transition-transform duration-300 hover:scale-[1.03] flex flex-col items-center justify-center gap-2 md:gap-4 p-4 text-center shadow-[0_10px_30px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_40px_rgba(57,255,20,0.2)]">
                     <div className="p-3 bg-[var(--bg-base)] rounded-xl shadow-inner border border-[var(--border-color)]">
                       <FaTrophy className="text-2xl md:text-3xl text-[var(--text-main)]" />
                     </div>
@@ -424,9 +427,9 @@ export default function Home() {
               </div>
 
               {/* Box 4: Connect (Bottom Left) */}
-              <div className="absolute bottom-0 left-0 w-[40%] h-[40%] flex items-center justify-center p-2 md:p-6">
+              <div className="absolute bottom-0 left-0 w-[40%] h-[40%] flex items-center justify-center p-2 md:p-6 animate-float-4">
                 <Link to="/browse-quizzes" className="block w-full h-full">
-                  <div className="glass-panel w-full h-full rounded-2xl md:rounded-3xl transition-transform duration-300 hover:scale-[1.03] flex flex-col items-center justify-center gap-2 md:gap-4 p-4 text-center shadow-[0_10px_30px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_40px_rgba(57,255,20,0.2)]">
+                  <div className="glass-panel border-transparent w-full h-full rounded-2xl md:rounded-3xl transition-transform duration-300 hover:scale-[1.03] flex flex-col items-center justify-center gap-2 md:gap-4 p-4 text-center shadow-[0_10px_30px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_40px_rgba(57,255,20,0.2)]">
                     <div className="p-3 bg-[var(--bg-base)] rounded-xl shadow-inner border border-[var(--border-color)]">
                       <FaUsers className="text-2xl md:text-3xl text-[var(--text-main)]" />
                     </div>

@@ -43,7 +43,7 @@ html, body {
   overflow-x: hidden;
   background-color: var(--bg-base);
   color: var(--text-main);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', 'Space Grotesk', sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
   letter-spacing: -0.015em;
 }
@@ -53,7 +53,7 @@ html, body {
   min-height: 100vh;
   position: relative;
   z-index: 1;
-  padding-top: 5rem; /* Fixes floating navbar overlap */
+  padding-top: 8rem; /* Fixes floating navbar overlap */
 }
 
 /* Massive Radial Background */
@@ -61,12 +61,13 @@ html, body {
   position: fixed;
   inset: 0;
   z-index: -2;
-  background-image: radial-gradient(
-    circle at 50% 100%, 
-    var(--radial-center) 0%, 
-    var(--radial-edge) 70%
-  );
+  background: radial-gradient(circle at top right, rgba(57, 255, 20, 0.15) 0%, transparent 40%),
+              radial-gradient(circle at bottom left, rgba(160, 130, 255, 0.1) 0%, transparent 40%);
   pointer-events: none;
+}
+.dark .gladia-bg {
+  background: radial-gradient(circle at top right, rgba(57, 255, 20, 0.2) 0%, transparent 50%),
+              radial-gradient(circle at bottom left, rgba(100, 50, 150, 0.2) 0%, transparent 50%);
 }
 
 /* Neon Gas Glow */
@@ -92,30 +93,17 @@ html, body {
 
 /* Neon Gas Bubble / Blob Background */
 .neon-smoke-bubble {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100vw;
-  height: 50vw;
-  max-width: 1200px;
-  max-height: 600px;
-  background: radial-gradient(ellipse at bottom, rgba(57, 255, 20, 0.5) 0%, rgba(57, 255, 20, 0) 70%);
-  transform: translateX(-50%);
-  border-radius: 50% 50% 0 0;
+  height: 100vh;
+  background: linear-gradient(135deg, rgba(57, 255, 20, 0.05) 0%, rgba(0, 0, 0, 0) 100%);
   pointer-events: none;
   z-index: -1;
-  animation: breathing 10s ease-in-out infinite alternate;
-  mix-blend-mode: normal;
 }
 .dark .neon-smoke-bubble {
-  background: radial-gradient(ellipse at bottom, rgba(57, 255, 20, 0.4) 0%, rgba(57, 255, 20, 0) 70%);
-  mix-blend-mode: screen;
-}
-
-@keyframes breathing {
-  0% { transform: translateX(-50%) scale(1); opacity: 0.6; }
-  50% { transform: translateX(-48%) scale(1.05); opacity: 1; }
-  100% { transform: translateX(-52%) scale(1.1); opacity: 0.8; }
+  background: linear-gradient(135deg, rgba(57, 255, 20, 0.1) 0%, rgba(0, 0, 0, 0) 100%);
 }
 
 .glass-nav {
@@ -200,6 +188,23 @@ html, body {
   from { stroke-dashoffset: 100; }
   to { stroke-dashoffset: 0; }
 }
+
+.title-glow {
+  background: linear-gradient(to right, var(--text-main), #39FF14);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 20px rgba(57, 255, 20, 0.2);
+}
+
+@keyframes float-box {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-15px) scale(1.03); }
+}
+.animate-float-1 { animation: float-box 5s ease-in-out infinite; }
+.animate-float-2 { animation: float-box 5s ease-in-out infinite 1.2s; }
+.animate-float-3 { animation: float-box 5s ease-in-out infinite 2.4s; }
+.animate-float-4 { animation: float-box 5s ease-in-out infinite 3.6s; }
 
 /* Shooting Star */
 .shooting-star {
