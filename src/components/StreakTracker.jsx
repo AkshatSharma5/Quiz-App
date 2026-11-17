@@ -1,99 +1,49 @@
-import { motion } from 'framer-motion';
+import { FaFire } from 'react-icons/fa';
 import { useAuth } from '@/context/AuthContext';
-import { FaFire, FaSnowflake } from 'react-icons/fa';
+import PropTypes from 'prop-types';
 
 export default function StreakTracker({ size = 'normal' }) {
   const { userProfile } = useAuth();
-
   if (!userProfile) return null;
 
   const streak = userProfile.currentStreak || 0;
   const longestStreak = userProfile.longestStreak || 0;
-
-  const getStreakColor = () => {
-    if (streak >= 30) return 'from-red-500 to-orange-500';
-    if (streak >= 7) return 'from-orange-500 to-yellow-500';
-    if (streak >= 3) return 'from-yellow-500 to-amber-400';
-    return 'from-gray-400 to-gray-500';
-  };
-
-  const getStreakEmoji = () => {
-    if (streak >= 30) return '🔥🔥🔥';
-    if (streak >= 7) return '🔥🔥';
-    if (streak >= 3) return '🔥';
-    return '❄️';
-  };
+  const progress = Math.min((streak / 7) * 100, 100);
+  const milestoneText = streak >= 7 ? '7-day milestone reached' : (7 - streak) + ' days to your next milestone';
 
   if (size === 'mini') {
     return (
-      <motion.div
-        whileHover={{ scale: 1.05 }}
-        className={`bg-gradient-to-r ${getStreakColor()} text-white px-3 py-1 rounded-full flex items-center gap-1 text-sm font-semibold shadow-lg`}
-      >
-        {streak > 0 ? <FaFire className="animate-pulse" /> : <FaSnowflake />}
-        {streak}
-      </motion.div>
+      <div className="streak-mini-pill flex items-center gap-2 rounded-full border border-[var(--border-color)] px-3 py-2 text-sm font-semibold text-[var(--text-main)]" aria-label={streak + ' day learning streak'}>
+        <FaFire className="text-orange-500" aria-hidden="true" />
+        <span>{streak === 1 ? '1 day' : streak === 0 ? '0 day' : streak + ' days'}</span>
+      </div>
     );
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="bg-white/80 backdrop-blur-xl rounded-xl shadow-lg p-4 border border-white/20"
-    >
-      <div className="flex items-center justify-between">
+    <section className="home-stat-card h-full">
+      <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <motion.div
-            animate={streak > 0 ? { scale: [1, 1.1, 1] } : {}}
-            transition={{ repeat: Infinity, duration: 1.5 }}
-            className={`w-12 h-12 rounded-full bg-gradient-to-br ${getStreakColor()} flex items-center justify-center text-white text-xl shadow-lg`}
-          >
-            {streak > 0 ? <FaFire /> : <FaSnowflake />}
-          </motion.div>
+          <span className="home-action-icon streak-flame"><FaFire aria-hidden="true" /></span>
           <div>
-            <div className="text-2xl font-bold text-gray-800">
-              {streak} {getStreakEmoji()}
-            </div>
-            <div className="text-sm text-gray-500">Day Streak</div>
+            <p className="eyebrow">Current streak</p>
+            <p className="mt-1 text-2xl font-semibold tracking-tight text-[var(--text-main)]">{streak} {streak === 1 ? 'day' : 'days'}</p>
           </div>
         </div>
-
         <div className="text-right">
-          <div className="text-sm text-gray-500">Best</div>
-          <div className="font-semibold text-gray-700">{longestStreak} days</div>
+          <p className="text-xs text-[var(--text-muted)]">Best</p>
+          <p className="font-semibold text-[var(--text-main)]">{longestStreak} days</p>
         </div>
       </div>
-
-      {streak > 0 && (
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: '100%' }}
-          className="mt-3"
-        >
-          <div className="text-xs text-gray-500 mb-1">
-            {streak < 7 
-              ? `${7 - streak} more days to unlock Week Warrior!`
-              : streak < 30
-                ? `${30 - streak} more days to unlock Monthly Master!`
-                : '🎉 You are on fire!'
-            }
-          </div>
-          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${Math.min((streak / 30) * 100, 100)}%` }}
-              className={`h-full bg-gradient-to-r ${getStreakColor()}`}
-            />
-          </div>
-        </motion.div>
-      )}
-
-      {streak === 0 && (
-        <p className="mt-3 text-sm text-gray-500 text-center">
-          Play a quiz today to start your streak! 🎯
-        </p>
-      )}
-    </motion.div>
+      <div className="mt-5 flex items-center justify-between gap-2 text-xs text-[var(--text-muted)]">
+        <span>{streak ? 'Keep your practice rhythm going' : 'Complete a practice session to begin'}</span>
+        <span className="shrink-0">{milestoneText}</span>
+      </div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--border-color)]" role="progressbar" aria-label="Progress to 7 day streak" aria-valuenow={Math.min(streak, 7)} aria-valuemin={0} aria-valuemax={7}>
+        <div className="streak-progress h-full rounded-full" style={{ width: progress + '%' }} />
+      </div>
+    </section>
   );
 }
+
+StreakTracker.propTypes = { size: PropTypes.string };

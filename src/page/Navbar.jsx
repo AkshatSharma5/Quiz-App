@@ -1,15 +1,10 @@
 "use client";
-import React from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaGithub, FaLinkedin, FaUser, FaSignOutAlt, FaTrophy, FaChartLine, FaBrain, FaPlus, FaGlobe, FaBook, FaSun, FaMoon, FaBars } from "react-icons/fa";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
-import icon from "../assets/icon.png";
 import {
-  Tooltip,
-  TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
 } from "@/components/ui/tooltip";
 import Translate from "./Translate";
 import {
@@ -28,8 +23,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import StreakTracker from "@/components/StreakTracker";
+import icon from "@/assets/icon.png";
 
 export default function Navbar() {
   const { user, userProfile, logout } = useAuth();
@@ -48,10 +43,10 @@ export default function Navbar() {
 
   const navLinks = [
     { name: 'Home', path: '/' },
+    { name: 'Adaptive', path: '/adaptive', icon: <FaBrain />, featured: true },
     { name: 'Play', path: '/quiz-setup' },
     { name: 'Community', path: '/browse-quizzes', icon: <FaGlobe /> },
     { name: 'Study', path: '/study', icon: <FaBook /> },
-    { name: 'Adaptive', path: '/adaptive', icon: <FaBrain /> },
     { name: 'Leaderboard', path: '/leaderboard', icon: <FaTrophy className="text-yellow-500" /> }
   ];
 
@@ -61,19 +56,20 @@ export default function Navbar() {
         <header className="glass-nav shadow-lg border-[var(--border-color)] pointer-events-auto w-full max-w-[1200px]">
           <div className="flex items-center justify-between py-3 px-4 md:px-8">
           <Link to="/" className="flex items-center gap-2 group">
-            <img src={icon} alt="Logo" className="w-8 h-8 transition-transform group-hover:scale-110" />
+            <img src={icon} alt="" aria-hidden="true" className="h-9 w-9 rounded-lg transition-transform group-hover:scale-110" />
             <span className="text-xl font-bold tracking-tight text-[var(--text-main)]">
-              QuizUp<span className="text-[#00A63E] dark:text-[#39FF14]">.</span>
+              QuizUp<span className="text-[var(--accent)]">.</span>
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6 text-sm font-semibold">
+          <nav className="hidden lg:flex items-center gap-3 text-sm font-semibold">
             {navLinks.map((link) => (
               <Link 
                 key={link.name} 
                 to={link.path} 
-                className={`flex items-center gap-1.5 transition-colors hover:text-[#00A63E] dark:hover:text-[#39FF14] ${location.pathname === link.path ? 'text-[#00A63E] dark:text-[#39FF14]' : 'text-[var(--text-main)]'}`}
+                aria-current={location.pathname === link.path ? 'page' : undefined}
+                className={`${link.featured ? 'nav-adaptive' : 'text-[var(--text-main)]'} flex items-center gap-1.5 transition-colors hover:text-[#00A63E] dark:hover:text-[#39FF14] ${location.pathname === link.path ? 'text-[#00A63E] dark:text-[#39FF14]' : ''}`}
               >
                 {link.icon && <span className="text-xs opacity-70">{link.icon}</span>}
                 {link.name}
@@ -163,14 +159,18 @@ export default function Navbar() {
               </div>
             )}
 
-            {/* Mobile Menu Toggle (simplified for now to just show dropdown of links on click, or simply keep as horizontal scroll on phones) */}
+            <button onClick={() => navigate('/adaptive')} aria-label="Open adaptive learning" title="Adaptive learning" className="nav-adaptive-mobile lg:hidden">
+              <FaBrain aria-hidden="true" />
+            </button>
+
+            {/* Mobile Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="md:hidden w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)]">
+                <button className="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)]">
                   <FaBars />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 glass-panel border-[var(--border-color)] md:hidden">
+              <DropdownMenuContent align="end" className="w-48 glass-panel border-[var(--border-color)] lg:hidden">
                 {navLinks.map((link) => (
                   <DropdownMenuItem key={link.name} onClick={() => navigate(link.path)} className="focus:bg-[var(--bg-base)] cursor-pointer">
                     {link.icon && <span className="mr-2 opacity-70">{link.icon}</span>}

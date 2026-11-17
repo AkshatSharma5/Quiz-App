@@ -16,7 +16,6 @@ import MyQuizzes from "./page/MyQuizzes";
 import BrowseQuizzes from "./page/BrowseQuizzes";
 import StudyMode from "./page/StudyMode";
 import AdaptivePractice from "./page/AdaptivePractice";
-import NetworkBackground from "./components/NetworkBackground";
 
 function App() {
   return (
@@ -25,11 +24,6 @@ function App() {
         <BrowserRouter>
           <div className="app-container font-sans bg-[var(--bg-base)] text-[var(--text-main)] transition-colors duration-300">
             <div className="gladia-bg"></div>
-            <div className="neon-smoke-bubble"></div>
-            {/* Only show NetworkBackground on Home page for performance/clarity, or keep it global if desired. I'll keep it global but faded. */}
-            <div className="fixed inset-0 z-[-1] opacity-40 mix-blend-screen pointer-events-none">
-              <NetworkBackground />
-            </div>
             <Navbar />
             <Routes>
               <Route path="/" element={<Home />} />

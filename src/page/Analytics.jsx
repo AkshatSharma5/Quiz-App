@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
-import { collection, query, where, orderBy, getDocs, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -13,6 +13,7 @@ import { FaChartLine, FaBrain, FaTrophy, FaFire, FaArrowLeft } from 'react-icons
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { QUIZ_CATEGORIES } from '@/data/quizData';
+import { getDemoQuizHistory } from '@/lib/demoMode';
 
 export default function Analytics() {
   const { user, userProfile } = useAuth();
@@ -29,6 +30,11 @@ export default function Analytics() {
   }, [user]);
 
   const fetchQuizHistory = async () => {
+    if (user?.isDemo) {
+      setQuizHistory(getDemoQuizHistory());
+      setLoading(false);
+      return;
+    }
     try {
       console.log('[Analytics] Fetching quiz history for user:', user.uid);
       const historyRef = collection(db, 'quizHistory');
@@ -103,6 +109,10 @@ export default function Analytics() {
     category,
     score: data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0
   }));
+  const rankedCategories = categoryData.filter((entry) => entry.category !== 'No Data Yet').slice().sort((a, b) => a.score - b.score);
+  const weakestCategory = rankedCategories[0];
+  const strongestCategory = rankedCategories[rankedCategories.length - 1];
+  const daysUntilStreakGoal = 7 - ((userProfile.currentStreak || 0) % 7);
 
   // If no data, show placeholder
   if (categoryData.length === 0) {
@@ -153,7 +163,7 @@ export default function Analytics() {
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--bg-base)] pt-24 p-4 md:p-8">
+    <div className="min-h-screen bg-[var(--bg-base)] p-4 pt-6 md:p-8 md:pt-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -329,7 +339,7 @@ export default function Analytics() {
           </div>
         )}
 
-        {/* AI Recommendations */}
+        {/* Performance insights */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -337,34 +347,23 @@ export default function Analytics() {
           transition={{ delay: 0.3 }}
           className="mt-8 glass-panel rounded-3xl shadow-xl p-8"
         >
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 text-[var(--text-main)]">
-            <FaBrain className="text-[#00A63E] dark:text-[#39FF14]" /> AI Learning Recommendations
+          <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3 text-[var(--text-main)]">
+            <FaBrain className="text-[var(--accent)]" /> Learning insights
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-[var(--bg-base)] rounded-2xl p-6 border border-[var(--border-color)]">
-              <div className="text-lg font-bold mb-3 flex items-center gap-2">
-                <span className="text-red-500">🎯</span> Focus Area
-              </div>
-              <p className="text-[var(--text-muted)] font-medium text-sm leading-relaxed">
-                Based on your performance, consider practicing <strong className="text-[var(--text-main)]">Sports</strong> quizzes to improve your weakest category.
-              </p>
-            </div>
-            <div className="bg-[var(--bg-base)] rounded-2xl p-6 border border-[var(--border-color)]">
-              <div className="text-lg font-bold mb-3 flex items-center gap-2">
-                <span className="text-yellow-500">⚡</span> Quick Win
-              </div>
-              <p className="text-[var(--text-muted)] font-medium text-sm leading-relaxed">
-                You're doing great in <strong className="text-[var(--text-main)]">Geography</strong>! Try harder difficulty to earn more XP.
-              </p>
-            </div>
-            <div className="bg-[var(--bg-base)] rounded-2xl p-6 border border-[var(--border-color)]">
-              <div className="text-lg font-bold mb-3 flex items-center gap-2">
-                <span className="text-orange-500">🔥</span> Streak Goal
-              </div>
-              <p className="text-[var(--text-muted)] font-medium text-sm leading-relaxed">
-                Play <strong className="text-[var(--text-main)]">{7 - (userProfile.currentStreak || 0)} more days</strong> to unlock the "Week Warrior" achievement!
-              </p>
-            </div>
+            <article className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-base)] p-5">
+              <p className="eyebrow">Focus next</p>
+              {weakestCategory ? <><h3 className="mt-2 text-lg font-semibold text-[var(--text-main)]">{weakestCategory.category}</h3><p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Lowest recent accuracy: {weakestCategory.score}%.</p><button onClick={() => navigate('/adaptive')} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[var(--accent)]">Practice this topic <FaArrowLeft className="rotate-180" aria-hidden="true" /></button></> : <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Complete a quiz to see a focus area based on your answers.</p>}
+            </article>
+            <article className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-base)] p-5">
+              <p className="eyebrow">Current strength</p>
+              {strongestCategory ? <><h3 className="mt-2 text-lg font-semibold text-[var(--text-main)]">{strongestCategory.category}</h3><p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Highest recent accuracy: {strongestCategory.score}%.</p></> : <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Your strongest category will appear after your next quiz.</p>}
+            </article>
+            <article className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-base)] p-5">
+              <p className="eyebrow">Streak milestone</p>
+              <h3 className="mt-2 text-lg font-semibold text-[var(--text-main)]">{userProfile.currentStreak || 0} day streak</h3>
+              <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">{daysUntilStreakGoal} {daysUntilStreakGoal === 1 ? 'day' : 'days'} until your next 7-day milestone.</p>
+            </article>
           </div>
         </motion.div>
       </motion.div>

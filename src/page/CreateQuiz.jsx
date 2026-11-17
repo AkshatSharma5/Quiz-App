@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Toaster, toast } from 'react-hot-toast';
 import { FaPlus, FaTrash, FaSave, FaEye, FaArrowLeft, FaCheck } from 'react-icons/fa';
 import { QUIZ_CATEGORIES, DIFFICULTY_LEVELS } from '@/data/quizData';
+import { saveDemoCommunityQuiz } from '@/lib/demoMode';
 
 export default function CreateQuiz() {
   const { user, userProfile, updateUserProfile } = useAuth();
@@ -144,14 +145,18 @@ export default function CreateQuiz() {
         averageRating: 0
       };
 
-      await addDoc(collection(db, 'communityQuizzes'), quizDoc);
+      if (user.isDemo) {
+        saveDemoCommunityQuiz({ ...quizDoc, id: `demo-quiz-${Date.now()}`, createdAt: Date.now() });
+      } else {
+        await addDoc(collection(db, 'communityQuizzes'), quizDoc);
+      }
       
       // Update user's quiz created count
       await updateUserProfile(user.uid, {
         quizzesCreated: (userProfile?.quizzesCreated || 0) + 1
       });
 
-      toast.success('Quiz created successfully! 🎉');
+      toast.success('Quiz created successfully.');
       navigate('/my-quizzes');
     } catch (error) {
       console.error('Error creating quiz:', error);
@@ -225,7 +230,7 @@ export default function CreateQuiz() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
+    <div className="quiz-create min-h-screen p-4 md:p-8">
       <Toaster position="top-center" />
       
       <motion.div
@@ -273,7 +278,7 @@ export default function CreateQuiz() {
               >
                 {QUIZ_CATEGORIES.filter(c => c.id !== 0).map((cat) => (
                   <option key={cat.id} value={cat.id}>
-                    {cat.icon} {cat.name}
+                    {cat.name}
                   </option>
                 ))}
               </select>
@@ -295,7 +300,8 @@ export default function CreateQuiz() {
                   <button
                     key={level.id}
                     onClick={() => setQuizData(prev => ({ ...prev, difficulty: level.id }))}
-                    className={`px-4 py-2 rounded-lg font-bold transition-all ${
+                    aria-pressed={quizData.difficulty === level.id}
+                    className={`quiz-create-choice px-4 py-2 rounded-lg font-bold transition-all ${
                       quizData.difficulty === level.id
                         ? `${level.color} text-white shadow-lg`
                         : 'bg-[var(--bg-base)] text-[var(--text-main)] border border-[var(--border-color)] opacity-70 hover:opacity-100'
@@ -341,7 +347,8 @@ export default function CreateQuiz() {
                   <div key={oIndex} className="flex items-center gap-2">
                     <button
                       onClick={() => updateQuestion(qIndex, 'correctIndex', oIndex)}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-all border ${
+                      aria-pressed={question.correctIndex === oIndex}
+                      className={`quiz-correct-toggle w-8 h-8 rounded-full flex items-center justify-center transition-all border ${
                         question.correctIndex === oIndex
                           ? 'bg-[#00A63E] border-[#00A63E] text-white shadow-[0_0_10px_rgba(0,166,62,0.5)]'
                           : 'bg-[var(--bg-base)] border-[var(--border-color)] text-[var(--border-color)] hover:border-[#00A63E] hover:text-[#00A63E]'

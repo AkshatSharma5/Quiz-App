@@ -1,6 +1,7 @@
 import { handleMcpRequest, scoreTopics, AdaptiveError } from '../src/lib/adaptiveCore.js';
 import { LOCAL_QUESTIONS } from '../src/data/localLearning.js';
 import { env } from 'node:process';
+import { generateGeminiText } from './gemini.js';
 
 const json = (res, status, value) => { res.statusCode = status; res.setHeader('content-type', 'application/json; charset=utf-8'); res.end(JSON.stringify(value)); };
 
@@ -91,6 +92,22 @@ async function runTool({ base, uid, token }, name, args) {
     const old = data.answers.filter((answer) => answer.topic.toLowerCase() === args.topic.toLowerCase() && answer.question && answer.correctAnswer && Array.isArray(answer.options));
     const reviews = [...new Map(old.map((answer) => [answer.question, answer])).values()].map((answer, id) => ({ id, topic: answer.topic, description: answer.question, difficulty_level: 'medium', options: answer.options.map((description, optionId) => ({ id: optionId, description, is_correct: description === answer.correctAnswer })) }));
     const local = LOCAL_QUESTIONS.filter((question) => question.topic.toLowerCase() === args.topic.toLowerCase());
+    try {
+      const amount = Math.min(args.amount || 10, 10);
+      const context = old.slice(-3).map((answer) => `Question: ${answer.question}\nCorrect answer: ${answer.correctAnswer}`).join('\n\n');
+      const prompt = `Create ${amount} original multiple-choice questions for a learner practicing "${args.topic}". Use medium difficulty and avoid repeating these prior mistakes when supplied:\n${context || 'No prior mistakes supplied.'}\nReturn only a JSON array. Every item must have description, topic, difficulty_level, and options. Each options array must contain exactly four objects with description and is_correct, with exactly one is_correct true. Keep questions and choices concise.`;
+      const generated = JSON.parse(await generateGeminiText({ prompt, responseMimeType: 'application/json', maxOutputTokens: 2048 }));
+      if (Array.isArray(generated) && generated.length === amount && generated.every((question) =>
+        typeof question.description === 'string' && Array.isArray(question.options) && question.options.length === 4 &&
+        question.options.filter((option) => option.is_correct === true).length === 1 &&
+        question.options.every((option) => typeof option.description === 'string' && typeof option.is_correct === 'boolean')
+      )) {
+        return { topic: args.topic, questions: generated.map((question, id) => ({ ...question, id, topic: args.topic, difficulty_level: question.difficulty_level || 'medium', options: question.options.map((option, optionId) => ({ ...option, id: optionId })) })), source: 'gemini' };
+      }
+    } catch (error) {
+      // A missing key, quota response, or malformed model answer falls back to existing local practice.
+      console.info('Gemini practice generation unavailable; using stored questions.', error.code || error.message);
+    }
     const pool = reviews.length ? reviews : local;
     if (!pool.length) throw new AdaptiveError('NO_TOPIC_QUESTIONS', `No focused questions are available for ${args.topic} yet.`);
     const questions = Array.from({ length: Math.min(args.amount || 10, pool.length) }, (_, index) => ({ ...pool[index % pool.length], id: index }));

@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { collection, query, orderBy, getDocs, limit, where } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FaSearch, FaPlay, FaStar, FaUsers, FaFilter } from 'react-icons/fa';
+import { FaSearch, FaPlay, FaStar, FaUsers } from 'react-icons/fa';
 import { QUIZ_CATEGORIES, DIFFICULTY_LEVELS } from '@/data/quizData';
+import { getDemoCommunityQuizzes } from '@/lib/demoMode';
 
 export default function BrowseQuizzes() {
   const navigate = useNavigate();
@@ -48,9 +49,10 @@ export default function BrowseQuizzes() {
         quizList = quizList.filter(q => q.difficulty === selectedDifficulty);
       }
       
-      setQuizzes(quizList);
+      setQuizzes([...getDemoCommunityQuizzes(), ...quizList]);
     } catch (error) {
       console.error('Error fetching quizzes:', error);
+      setQuizzes(getDemoCommunityQuizzes());
     } finally {
       setLoading(false);
     }
@@ -63,7 +65,7 @@ export default function BrowseQuizzes() {
 
   const getCategoryIcon = (categoryId) => {
     const cat = QUIZ_CATEGORIES.find(c => c.id === categoryId);
-    return cat?.icon || '📚';
+    return cat?.name?.slice(0, 2).toUpperCase() || 'QZ';
   };
 
   const getDifficultyColor = (difficulty) => {
@@ -130,7 +132,7 @@ export default function BrowseQuizzes() {
               <option value={0}>All Categories</option>
               {QUIZ_CATEGORIES.filter(c => c.id !== 0).map((cat) => (
                 <option key={cat.id} value={cat.id}>
-                  {cat.icon} {cat.name}
+                    {cat.name}
                 </option>
               ))}
             </select>
@@ -188,7 +190,7 @@ export default function BrowseQuizzes() {
                 onClick={() => handlePlayQuiz(quiz)}
               >
                 <div className="flex items-start gap-3 mb-4">
-                  <span className="text-3xl">{getCategoryIcon(quiz.category)}</span>
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-xs font-bold text-[var(--accent)]">{getCategoryIcon(quiz.category)}</span>
                   <div className="flex-1">
                     <h3 className="font-bold text-[var(--text-main)] line-clamp-1">{quiz.title}</h3>
                     <p className="text-sm text-[var(--text-muted)] font-medium">by {quiz.creatorName}</p>

@@ -16,6 +16,7 @@ import {
   increment
 } from 'firebase/firestore';
 import { auth, googleProvider, db } from '@/lib/firebase';
+import { DEMO_SESSION_KEY, DEMO_USER, getDemoProfile, saveDemoProfile } from '@/lib/demoMode';
 
 const AuthContext = createContext({});
 
@@ -54,6 +55,7 @@ export function AuthProvider({ children }) {
 
   // Get user profile from Firestore
   const getUserProfile = async (userId) => {
+    if (userId === DEMO_USER.uid) return getDemoProfile();
     const userRef = doc(db, 'users', userId);
     const docSnap = await getDoc(userRef);
     if (docSnap.exists()) {
@@ -64,6 +66,12 @@ export function AuthProvider({ children }) {
 
   // Update user profile
   const updateUserProfile = async (userId, data) => {
+    if (user?.isDemo && userId === DEMO_USER.uid) {
+      const updatedProfile = { ...getDemoProfile(), ...data };
+      saveDemoProfile(updatedProfile);
+      setUserProfile(updatedProfile);
+      return updatedProfile;
+    }
     const userRef = doc(db, 'users', userId);
     await updateDoc(userRef, data);
     const updatedProfile = await getUserProfile(userId);
@@ -74,6 +82,30 @@ export function AuthProvider({ children }) {
   // Update quiz stats after completing a quiz
   const updateQuizStats = async (quizResult) => {
     if (!user) return;
+
+    if (user.isDemo) {
+      const profile = getDemoProfile();
+      const today = new Date().toDateString();
+      const lastPlayed = profile.lastPlayedAt ? new Date(profile.lastPlayedAt).toDateString() : null;
+      const yesterday = new Date(Date.now() - 86400000).toDateString();
+      const newStreak = lastPlayed === today ? profile.currentStreak || 1 : lastPlayed === yesterday ? (profile.currentStreak || 0) + 1 : 1;
+      const xpGained = quizResult.score + quizResult.correctAnswers * 10;
+      const updatedProfile = {
+        ...profile,
+        totalQuizzes: (profile.totalQuizzes || 0) + 1,
+        totalScore: (profile.totalScore || 0) + quizResult.score,
+        correctAnswers: (profile.correctAnswers || 0) + quizResult.correctAnswers,
+        totalQuestions: (profile.totalQuestions || 0) + quizResult.totalQuestions,
+        currentStreak: newStreak,
+        longestStreak: Math.max(newStreak, profile.longestStreak || 0),
+        lastPlayedAt: new Date().toISOString(),
+        xp: (profile.xp || 0) + xpGained,
+      };
+      updatedProfile.level = Math.floor(updatedProfile.xp / 500) + 1;
+      saveDemoProfile(updatedProfile);
+      setUserProfile(updatedProfile);
+      return { xpGained, newLevel: updatedProfile.level, newStreak };
+    }
     
     const userRef = doc(db, 'users', user.uid);
     const today = new Date().toDateString();
@@ -118,6 +150,7 @@ export function AuthProvider({ children }) {
 
   // Register with email/password
   const register = async (email, password, displayName) => {
+    localStorage.removeItem(DEMO_SESSION_KEY);
     const result = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(result.user, { displayName });
     await createUserProfile(result.user.uid, {
@@ -129,11 +162,26 @@ export function AuthProvider({ children }) {
 
   // Sign in with email/password
   const login = async (email, password) => {
+    const username = email.trim().toLowerCase();
+    if (username === 'user') {
+      if (password !== '1234') {
+        const error = new Error('Invalid demo username or password.');
+        error.code = 'auth/invalid-credential';
+        throw error;
+      }
+      localStorage.setItem(DEMO_SESSION_KEY, 'true');
+      if (auth.currentUser) await signOut(auth);
+      setUser(DEMO_USER);
+      setUserProfile(getDemoProfile());
+      return { user: DEMO_USER };
+    }
+    localStorage.removeItem(DEMO_SESSION_KEY);
     return signInWithEmailAndPassword(auth, email, password);
   };
 
   // Sign in with Google
   const loginWithGoogle = async () => {
+    localStorage.removeItem(DEMO_SESSION_KEY);
     const result = await signInWithPopup(auth, googleProvider);
     const profile = await getUserProfile(result.user.uid);
     if (!profile) {
@@ -148,13 +196,21 @@ export function AuthProvider({ children }) {
 
   // Sign out
   const logout = async () => {
+    localStorage.removeItem(DEMO_SESSION_KEY);
     setUserProfile(null);
+    setUser(null);
     return signOut(auth);
   };
 
   // Listen to auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (localStorage.getItem(DEMO_SESSION_KEY) === 'true') {
+        setUser(DEMO_USER);
+        setUserProfile(getDemoProfile());
+        setLoading(false);
+        return;
+      }
       setUser(currentUser);
       if (currentUser) {
         const profile = await getUserProfile(currentUser.uid);

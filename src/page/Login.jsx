@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Toaster, toast } from 'react-hot-toast';
 import { FaGoogle, FaEnvelope, FaLock } from 'react-icons/fa';
@@ -20,7 +19,7 @@ export default function Login() {
     try {
       setLoading(true);
       await login(email, password);
-      toast.success('Welcome back! 🎉');
+      toast.success('Welcome back.');
       navigate('/');
     } catch (error) {
       console.error(error);
@@ -28,6 +27,8 @@ export default function Login() {
         toast.error('No account found with this email');
       } else if (error.code === 'auth/wrong-password') {
         toast.error('Incorrect password');
+      } else if (error.code === 'auth/invalid-credential') {
+        toast.error('Demo login is user / 1234. Check the username and password.');
       } else {
         toast.error('Failed to sign in. Please try again.');
       }
@@ -40,7 +41,7 @@ export default function Login() {
     try {
       setLoading(true);
       await loginWithGoogle();
-      toast.success('Welcome back! 🚀');
+      toast.success('Welcome back.');
       navigate('/');
     } catch (error) {
       console.error(error);
@@ -72,8 +73,9 @@ export default function Login() {
             <div className="relative">
               <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
               <Input
-                type="email"
-                placeholder="Email Address"
+                type="text"
+                autoComplete="username"
+                placeholder="Email Address or demo username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="pl-11 h-12 bg-[var(--bg-base)] border-[var(--border-color)] rounded-xl font-medium focus-visible:ring-[#00A63E] dark:focus-visible:ring-[#39FF14]"
@@ -102,6 +104,10 @@ export default function Login() {
             </button>
           </form>
 
+          <p className="mt-3 text-center text-xs text-[var(--text-muted)]">
+            Interview demo login: <strong>user</strong> / <strong>1234</strong>. Demo progress stays in this browser.
+          </p>
+
           <div className="flex items-center my-8">
             <div className="flex-1 h-px bg-[var(--border-color)]" />
             <span className="px-4 text-[var(--text-muted)] text-sm font-bold uppercase tracking-wider">or</span>
@@ -118,7 +124,7 @@ export default function Login() {
           </button>
 
           <p className="text-center mt-8 text-[var(--text-muted)] font-medium">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link to="/register" className="text-[#00A63E] dark:text-[#39FF14] hover:underline font-bold">
               Sign Up
             </Link>

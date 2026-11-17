@@ -10,25 +10,67 @@ import { useAuth } from '@/context/AuthContext';
 import { collection, addDoc, serverTimestamp, doc, setDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import Results from './Results';
-import { QUIZ_CATEGORIES } from '@/data/quizData';
 import { getLocalQuestions } from '@/data/localLearning';
-import { invokeAdaptiveTool } from '@/lib/adaptiveTools';
 
-// Helper function to decode HTML entities from OpenTDB strings
-function decodeHTML(html) {
-  const txt = document.createElement("textarea");
-  txt.innerHTML = html;
-  return txt.value;
+const decodeHTML = (value) => {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = value;
+  return textarea.value;
+};
+
+async function fetchOpenTdbQuestions(config) {
+  const amount = Math.min(25, Math.max(1, Number(config.amount) || 10));
+  const makeUrl = (includeDifficulty) => {
+    const params = new URLSearchParams({ amount: String(amount), type: 'multiple' });
+    if (Number(config.category) > 0) params.set('category', String(config.category));
+    if (includeDifficulty && config.difficulty) params.set('difficulty', config.difficulty);
+    return `https://opentdb.com/api.php?${params.toString()}`;
+  };
+
+  const request = async (includeDifficulty) => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    try {
+      const response = await fetch(makeUrl(includeDifficulty), { signal: controller.signal });
+      if (!response.ok) throw new Error(`Question service returned ${response.status}`);
+      const payload = await response.json();
+      if (payload.response_code !== 0 || !Array.isArray(payload.results) || payload.results.length === 0) return null;
+      return payload.results.map((question, index) => {
+        const options = [
+          { description: decodeHTML(question.correct_answer), is_correct: true },
+          ...question.incorrect_answers.map((answer) => ({ description: decodeHTML(answer), is_correct: false })),
+        ];
+        for (let i = options.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [options[i], options[j]] = [options[j], options[i]];
+        }
+        return {
+          id: index,
+          topic: decodeHTML(question.category),
+          difficulty_level: question.difficulty || config.difficulty || 'medium',
+          description: decodeHTML(question.question),
+          options: options.map((option, optionId) => ({ ...option, id: optionId })),
+        };
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
+  };
+
+  const matchingDifficulty = await request(true);
+  if (matchingDifficulty?.length) return matchingDifficulty;
+  if (config.difficulty) {
+    const anyDifficulty = await request(false);
+    if (anyDifficulty?.length) return anyDifficulty;
+  }
+  return null;
 }
-
-// Delay function for retry logic
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 export default function Quiz() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, updateQuizStats } = useAuth();
-  
+
   const [quizData, setQuizData] = useState(null);
   const [quizConfig, setQuizConfig] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -44,33 +86,83 @@ export default function Quiz() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingMessage, setLoadingMessage] = useState('Loading quiz...');
   const timerRef = useRef(null);
-  const answerRecordsRef = useRef({});
-  const completionRef = useRef(false);
+  const answerLockedRef = useRef(false);
+  const advanceLockedRef = useRef(false);
+  const finishLockedRef = useRef(false);
+  const advanceTimeoutRef = useRef(null);
   const hasLoadedQuiz = useRef(false); // Prevent double-loading in Strict Mode
+  const initializationStartedRef = useRef(false);
   const [playCorrect] = useSound('../assets/success.mp3');
   const [playWrong] = useSound('../assets/error.mp3');
 
+  // Load quiz questions from the original public quiz source, with an offline fallback.
+  const fetchQuizData = useCallback(async (config) => {
+    setIsLoading(true);
+    setLoadingMessage('Preparing your quiz...');
+    try {
+      let questions = null;
+      try {
+        questions = await fetchOpenTdbQuestions(config);
+      } catch (error) {
+        console.warn('Online question loading failed; switching to the offline question set.', error?.name || 'request failed');
+      }
+
+      if (!questions?.length) {
+        questions = getLocalQuestions(config.category, config.amount);
+      }
+      if (!Array.isArray(questions) || questions.length === 0 || questions.some((question) => !question.description || !Array.isArray(question.options) || question.options.length !== 4 || question.options.filter((option) => option.is_correct).length !== 1)) {
+        throw new Error('Could not prepare a valid quiz. Please try again.');
+      }
+
+      const initialTime = config.mode === 'speed' ? 5 : Number(config.timePerQuestion) || 15;
+      setQuizData(questions);
+      setCurrentQuestionIndex(0);
+      setScore(0);
+      setCorrectAnswersCount(0);
+      setLives(config.mode === 'survival' ? 1 : 5);
+      setHintsRemaining(3);
+      setSelectedOption(null);
+      setTimeLeft(initialTime);
+      setIsLoading(false);
+
+      localStorage.setItem('quizProgress', JSON.stringify({
+        quizData: questions,
+        currentQuestionIndex: 0,
+        score: 0,
+        lives: config.mode === 'survival' ? 1 : 5,
+        hintsRemaining: 3,
+        config,
+      }));
+    } catch (error) {
+      console.error('Quiz could not be prepared:', error?.message || error);
+      setIsLoading(false);
+      toast.error(error?.message || 'Could not load a quiz. Please try again.');
+      navigate('/quiz-setup');
+    }
+  }, [navigate]);
   // Load quiz configuration and data
   useEffect(() => {
+    if (initializationStartedRef.current) return;
+    initializationStartedRef.current = true;
     const mode = searchParams.get('mode');
-    
+
     if (mode === 'community') {
       // Prevent double-loading in React Strict Mode
       if (hasLoadedQuiz.current) {
         console.log('[Community Quiz] Already loaded, skipping...');
         return;
       }
-      
+
       // Load community quiz
       const communityQuiz = sessionStorage.getItem('communityQuiz');
       console.log('[Community Quiz] Raw sessionStorage:', communityQuiz);
-      
+
       if (communityQuiz) {
         try {
           const quiz = JSON.parse(communityQuiz);
           console.log('[Community Quiz] Parsed quiz:', quiz);
           console.log('[Community Quiz] Questions:', quiz.questions);
-          
+
           if (!quiz.questions || quiz.questions.length === 0) {
             console.error('[Community Quiz] No questions found');
             toast.error('This quiz has no questions');
@@ -87,7 +179,7 @@ export default function Quiz() {
             isCommunity: true,
             quizId: quiz.id
           };
-          
+
           console.log('[Community Quiz] Config:', config);
           setQuizConfig(config);
           setTimeLeft(15);
@@ -95,7 +187,7 @@ export default function Quiz() {
           setQuizData(quiz.questions);
           setIsLoading(false);
           console.log('[Community Quiz] Quiz loaded successfully!');
-          
+
           // Mark as loaded and remove from sessionStorage
           hasLoadedQuiz.current = true;
           sessionStorage.removeItem('communityQuiz');
@@ -114,7 +206,7 @@ export default function Quiz() {
       if (savedConfig) {
         const config = JSON.parse(savedConfig);
         setQuizConfig(config);
-        
+
         // Set initial values based on mode
         if (config.mode === 'survival') {
           setLives(1);
@@ -128,45 +220,23 @@ export default function Quiz() {
         } else {
           setTimeLeft(config.timePerQuestion || 15);
         }
-        
-        const adaptivePractice = sessionStorage.getItem('adaptivePractice');
-        if (config.isAdaptive && adaptivePractice) {
-          try {
-            const practice = JSON.parse(adaptivePractice);
-            if (!Array.isArray(practice.questions) || !practice.questions.length) throw new Error('Invalid adaptive practice.');
-            setQuizData(practice.questions);
-            setQuizConfig({ ...config, adaptiveTopic: practice.topic || config.adaptiveTopic, attemptId: practice.attemptId || config.attemptId });
-            setIsLoading(false);
-            sessionStorage.removeItem('adaptivePractice');
-          } catch (error) {
-            toast.error('Could not load focused practice. Please try again.');
-            navigate('/adaptive');
-          }
-        } else {
-          fetchQuizData(config);
-        }
+
+        fetchQuizData(config);
         sessionStorage.removeItem('quizConfig');
       } else {
         // Load saved progress or fetch new quiz
         const savedProgress = localStorage.getItem('quizProgress');
         if (savedProgress) {
           try {
-            const { quizData: savedQuizData, currentQuestionIndex: savedIndex, score: savedScore, lives: savedLives, hintsRemaining: savedHints, answerRecords = {}, expiry, config } = JSON.parse(savedProgress);
-            const now = Date.now();
-            if (now > expiry) {
-              localStorage.removeItem('quizProgress');
-              navigate('/quiz-setup');
-            } else {
-              setQuizData(savedQuizData);
-              setQuizConfig(config || { timePerQuestion: 15, mode: 'classic' });
-              setCurrentQuestionIndex(savedIndex);
-              setScore(savedScore);
-              setLives(savedLives);
-              setHintsRemaining(savedHints);
-              answerRecordsRef.current = answerRecords;
-              setIsLoading(false);
-            }
-          } catch (error) {
+            const { quizData: savedQuizData, currentQuestionIndex: savedIndex, score: savedScore, lives: savedLives, hintsRemaining: savedHints, config } = JSON.parse(savedProgress);
+            setQuizData(savedQuizData);
+            setQuizConfig(config || { timePerQuestion: 15, mode: 'classic' });
+            setCurrentQuestionIndex(savedIndex);
+            setScore(savedScore);
+            setLives(savedLives);
+            setHintsRemaining(savedHints);
+            setIsLoading(false);
+          } catch {
             localStorage.removeItem('quizProgress');
             navigate('/quiz-setup');
           }
@@ -175,415 +245,125 @@ export default function Quiz() {
         }
       }
     }
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, fetchQuizData]);
 
-  // Generate quiz questions using Gemini API
-  const fetchQuizData = async (config) => {
-    try {
-      setLoadingMessage('🧠 Generating quiz with AI...');
-      
-      const { GoogleGenerativeAI } = await import('@google/generative-ai');
-      const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
-      const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
-      
-      // Get category name
-      const categoryName = QUIZ_CATEGORIES.find(c => c.id === config.category)?.name || 'General Knowledge';
-      const difficulty = config.difficulty || 'medium';
-      const amount = config.amount || 10;
-      
-      const prompt = `Generate ${amount} multiple choice quiz questions about ${categoryName} with ${difficulty} difficulty.
+  const finishQuiz = useCallback(async () => {
+    if (!quizData?.length || finishLockedRef.current) return;
+    finishLockedRef.current = true;
+    advanceLockedRef.current = true;
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (advanceTimeoutRef.current) clearTimeout(advanceTimeoutRef.current);
 
-CRITICAL FORMAT REQUIREMENTS:
-- Return ONLY a valid JSON array, no markdown, no explanations
-- Each question must have exactly 4 options
-- Mark the correct answer with "is_correct": true
-- All other options must have "is_correct": false
+    const finalTime = Math.floor((Date.now() - startTime) / 1000);
+    setTimeTaken(finalTime);
+    setQuizCompleted(true);
+    localStorage.removeItem('quizProgress');
 
-Example format:
-[
-  {
-    "description": "What is the capital of France?",
-    "topic": "${categoryName}",
-    "difficulty_level": "${difficulty}",
-    "options": [
-      {"id": 0, "description": "Paris", "is_correct": true},
-      {"id": 1, "description": "London", "is_correct": false},
-      {"id": 2, "description": "Berlin", "is_correct": false},
-      {"id": 3, "description": "Madrid", "is_correct": false}
-    ]
-  }
-]
-
-Generate ${amount} questions now:`;
-
-      const result = await model.generateContent(prompt);
-      const text = await result.response.text();
-      
-      // Extract JSON from response (remove markdown code blocks if present)
-      let jsonText = text.trim();
-      if (jsonText.startsWith('```json')) {
-        jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-      } else if (jsonText.startsWith('```')) {
-        jsonText = jsonText.replace(/```\n?/g, '');
-      }
-      
-      const questions = JSON.parse(jsonText);
-      
-      // Validate and transform data
-      const transformedData = questions.map((q, index) => {
-        // Ensure all required fields exist
-        if (!q.options || !Array.isArray(q.options) || q.options.length !== 4) {
-          throw new Error('Invalid question format: must have exactly 4 options');
-        }
-        
-        // Ensure exactly one correct answer
-        const correctCount = q.options.filter(opt => opt.is_correct).length;
-        if (correctCount !== 1) {
-          throw new Error('Invalid question format: must have exactly 1 correct answer');
-        }
-        
-        return {
-          id: index,
-          topic: q.topic || categoryName,
-          difficulty_level: q.difficulty_level || difficulty,
-          description: q.description,
-          options: q.options.map((opt, idx) => ({
-            id: idx,
-            description: opt.description,
-            is_correct: opt.is_correct || false
-          }))
-        };
-      });
-
-      setQuizData(transformedData);
-      setIsLoading(false);
-
-      localStorage.setItem('quizProgress', JSON.stringify({
-        quizData: transformedData,
-        currentQuestionIndex: 0,
-        score: 0,
-        lives: config.mode === 'survival' ? 1 : 5,
-        hintsRemaining: 3,
-        answerRecords: answerRecordsRef.current,
-        expiry: Date.now() + 3 * 60 * 1000,
-        config: config
-      }));
-    } catch (err) {
-      console.warn('AI quiz generation unavailable; using the included offline question bank.', err);
-      const localQuestions = getLocalQuestions(config.category, config.amount).map((question, id) => ({
-        ...question,
-        id,
-        difficulty_level: config.difficulty || question.difficulty_level,
-      }));
-      setQuizData(localQuestions);
-      setIsLoading(false);
-      toast('Using the built-in question bank. AI generation is optional.', { icon: '📚' });
-      localStorage.setItem('quizProgress', JSON.stringify({
-        quizData: localQuestions,
-        currentQuestionIndex: 0,
-        score: 0,
-        lives: config.mode === 'survival' ? 1 : 5,
-        hintsRemaining: config.mode === 'practice' ? 999 : 3,
-        answerRecords: answerRecordsRef.current,
-        expiry: Date.now() + 3 * 60 * 1000,
-        config,
-      }));
-    }
-  };
-
-  /* COMMENTED OUT - OpenTDB API (replaced with Gemini AI)
-  const fetchQuizData = async (config, retryCount = 0) => {
-    const maxRetries = 3;
-    
-    try {
-      setLoadingMessage(retryCount > 0 ? `Retrying... (${retryCount}/${maxRetries})` : 'Fetching questions...');
-      
-      // Add delay between requests to avoid rate limiting
-      if (retryCount > 0) {
-        await delay(2000 * retryCount); // Exponential backoff
-      }
-
-      let url = `https://opentdb.com/api.php?amount=${config.amount || 10}`;
-      if (config.category && config.category !== 0) {
-        url += `&category=${config.category}`;
-      }
-      if (config.difficulty) {
-        url += `&difficulty=${config.difficulty}`;
-      }
-
-      const res = await fetch(url);
-      
-      // Handle rate limiting
-      if (res.status === 429) {
-        if (retryCount < maxRetries) {
-          setLoadingMessage('API rate limited. Waiting before retry...');
-          await delay(5000);
-          return fetchQuizData(config, retryCount + 1);
-        } else {
-          throw new Error('API rate limited. Please try again in a few seconds.');
-        }
-      }
-      
-      const data = await res.json();
-
-      // Handle response codes
-      // 0: Success, 1: No Results, 2: Invalid Parameter, 3: Token Not Found, 4: Token Empty
-      if (data.response_code === 1) {
-        toast.error('Not enough questions available for this category/difficulty. Try different settings.');
-        navigate('/quiz-setup');
-        return;
-      }
-      
-      if (data.response_code !== 0) {
-        if (retryCount < maxRetries) {
-          return fetchQuizData(config, retryCount + 1);
-        }
-        throw new Error('Failed to fetch questions from API');
-      }
-
-      const transformedData = data.results.map((q, index) => {
-        const questionText = decodeHTML(q.question);
-        const correctAnswer = decodeHTML(q.correct_answer);
-        const incorrectAnswers = q.incorrect_answers.map(ans => decodeHTML(ans));
-
-        const incorrectOptions = incorrectAnswers.map((ans, idx) => ({
-          id: idx + 1,
-          description: ans,
-          is_correct: false
-        }));
-
-        const correctOption = {
-          id: incorrectOptions.length + 1,
-          description: correctAnswer,
-          is_correct: true
-        };
-
-        const options = [...incorrectOptions, correctOption];
-        // Shuffle options
-        for (let i = options.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [options[i], options[j]] = [options[j], options[i]];
-        }
-
-        return {
-          id: index,
-          topic: q.category,
-          difficulty_level: q.difficulty,
-          description: questionText,
-          options: options
-        };
-      });
-
-      setQuizData(transformedData);
-      setIsLoading(false);
-
-      localStorage.setItem('quizProgress', JSON.stringify({
-        quizData: transformedData,
-        currentQuestionIndex: 0,
-        score: 0,
-        lives: config.mode === 'survival' ? 1 : 5,
-        hintsRemaining: 3,
-        expiry: Date.now() + 3 * 60 * 1000,
-        config: config
-      }));
-    } catch (err) {
-      console.error('Fetch error:', err);
-      
-      if (retryCount < maxRetries) {
-        return fetchQuizData(config, retryCount + 1);
-      }
-      
-      toast.error(err.message || 'Failed to load questions. Please try again.');
-      navigate('/quiz-setup');
-    }
-  };
-  */
-
-  // Handle transition to next question or completion of quiz
-  const handleNextQuestion = useCallback(async () => {
-    if (!quizData || quizData.length === 0 || completionRef.current) return;
-
-    const question = quizData[currentQuestionIndex];
-    if (!answerRecordsRef.current[currentQuestionIndex] && question) {
-      const correctOption = question.options?.find((option) => option.is_correct);
-      answerRecordsRef.current[currentQuestionIndex] = {
-        questionId: `${quizConfig?.attemptId || 'quiz'}:${currentQuestionIndex}`,
-        topic: question.topic || 'General Knowledge',
-        correct: false,
-        question: question.description,
-        options: question.options?.map((option) => option.description) || [],
-        correctAnswer: correctOption?.description || '',
-      };
-    }
-    
-    if (currentQuestionIndex < quizData.length - 1) {
-      setCurrentQuestionIndex(i => i + 1);
-      setTimeLeft(quizConfig?.mode === 'speed' ? 5 : quizConfig?.timePerQuestion || 15);
-      setSelectedOption(null);
-    } else {
-      completionRef.current = true;
-      const finalTime = Math.floor((Date.now() - startTime) / 1000);
-      setTimeTaken(finalTime);
-      setQuizCompleted(true);
-      localStorage.removeItem('quizProgress');
-      const attemptId = quizConfig?.attemptId || (globalThis.crypto?.randomUUID?.() || `quiz-${Date.now()}`);
-
-      // Save quiz result to Firebase if user is logged in
-      if (user) {
-        try {
-          const quizResult = {
-            score,
-            correctAnswers: correctAnswersCount,
-            totalQuestions: quizData.length,
-            timeTaken: finalTime
-          };
-
-          // Update user stats
-          const statsUpdate = await updateQuizStats(quizResult);
-          
-          if (statsUpdate) {
-            if (statsUpdate.newStreak > 1) {
-              toast.success(`🔥 ${statsUpdate.newStreak} day streak!`);
-            }
-            toast.success(`+${statsUpdate.xpGained} XP earned!`);
-          }
-
-          // Save to quiz history
-          await addDoc(collection(db, 'quizHistory'), {
-            userId: user.uid,
-            score,
-            correctAnswers: correctAnswersCount,
-            totalQuestions: quizData.length,
-            timeTaken: finalTime,
-            category: quizConfig?.category || "science",
-            difficulty: quizConfig?.difficulty || 'medium',
-            mode: quizConfig?.mode || 'classic',
-            isCommunity: quizConfig?.isCommunity || false,
-            adaptiveAttemptId: attemptId,
-            questionAnswers: Object.values(answerRecordsRef.current),
-            completedAt: serverTimestamp()
-          });
-
-          // Mark daily challenge as complete
-          if (quizConfig?.isDaily) {
-            const today = new Date().toDateString();
-            await setDoc(doc(db, 'dailyChallenges', `${user.uid}_${today}`), {
-              completed: true,
-              score,
-              completedAt: serverTimestamp()
-            });
-          }
-
-          // Update community quiz play count
-          if (quizConfig?.isCommunity && quizConfig?.quizId) {
-            await updateDoc(doc(db, 'communityQuizzes', quizConfig.quizId), {
-              plays: increment(1),
-              totalScore: increment(score)
-            });
-          }
-        } catch (error) {
-          console.error('Error saving quiz result:', error);
-        }
-      }
-
+    if (user) {
       try {
-        const answers = Object.values(answerRecordsRef.current);
-        await invokeAdaptiveTool(user, 'record_answers', { attemptId, answers });
-        const updated = await invokeAdaptiveTool(user, 'update_revision_plan', { answers });
-        if (quizConfig?.isAdaptive) {
-          const savedFlow = JSON.parse(localStorage.getItem('quizup.adaptiveWorkflow') || '{}');
-          localStorage.setItem('quizup.adaptiveWorkflow', JSON.stringify({ ...savedFlow, attemptId, topic: quizConfig.adaptiveTopic, status: 'complete', completedAt: Date.now(), toolCalls: (savedFlow.toolCalls || 3) + 2, steps: [...(savedFlow.steps || []), 'update_mastery_and_revision'], revisionTopics: updated.revisionPlan?.length || 0 }));
+        const quizResult = { score, correctAnswers: correctAnswersCount, totalQuestions: quizData.length, timeTaken: finalTime };
+        const statsUpdate = await updateQuizStats(quizResult);
+        if (statsUpdate) {
+          if (statsUpdate.newStreak > 1) toast.success(`🔥 ${statsUpdate.newStreak} day streak!`);
+          toast.success(`+${statsUpdate.xpGained} XP earned!`);
         }
-        if (quizConfig?.isAdaptive && updated.revisionPlan?.length) toast.success('Topic mastery and revision plan updated.');
+        await addDoc(collection(db, 'quizHistory'), {
+          userId: user.uid,
+          score,
+          correctAnswers: correctAnswersCount,
+          totalQuestions: quizData.length,
+          timeTaken: finalTime,
+          category: quizConfig?.category || 'science',
+          difficulty: quizConfig?.difficulty || 'medium',
+          mode: quizConfig?.mode || 'classic',
+          isCommunity: quizConfig?.isCommunity || false,
+          completedAt: serverTimestamp(),
+        });
+        if (quizConfig?.isDaily) {
+          const today = new Date().toDateString();
+          await setDoc(doc(db, 'dailyChallenges', `${user.uid}_${today}`), { completed: true, score, completedAt: serverTimestamp() });
+        }
+        if (quizConfig?.isCommunity && quizConfig?.quizId) {
+          await updateDoc(doc(db, 'communityQuizzes', quizConfig.quizId), { plays: increment(1), totalScore: increment(score) });
+        }
       } catch (error) {
-        console.error('Adaptive learning update failed:', error);
-        if (quizConfig?.isAdaptive) {
-          try {
-            const savedFlow = JSON.parse(localStorage.getItem('quizup.adaptiveWorkflow') || '{}');
-            localStorage.setItem('quizup.adaptiveWorkflow', JSON.stringify({ ...savedFlow, status: 'failed', error: { code: error.code || 'ADAPTIVE_UPDATE_FAILED', message: error.message } }));
-          } catch { /* A learning sync failure must not block viewing results. */ }
-        }
-        toast.error(`Could not update adaptive progress: ${error.message || 'unknown error'}`);
+        console.error('Error saving quiz result:', error);
       }
     }
-  }, [currentQuestionIndex, quizData, startTime, user, score, correctAnswersCount, updateQuizStats, quizConfig]);
+  }, [quizData, startTime, user, score, correctAnswersCount, updateQuizStats, quizConfig]);
 
-  // Redirect if lives run out (except in practice mode)
-  useEffect(() => {
-    if (lives <= 0 && quizConfig?.mode !== 'practice') {
-      toast.error('You lost! 0 Lives Left!');
-      toast.error('Redirecting to home... Wait for 3 mins. before playing!');
-      navigate('/');
+  const handleNextQuestion = useCallback(async () => {
+    if (!quizData?.length) return;
+    if (currentQuestionIndex >= quizData.length - 1) {
+      await finishQuiz();
+      return;
     }
-  }, [lives, navigate, quizConfig]);
+    if (advanceLockedRef.current) return;
+    advanceLockedRef.current = true;
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (advanceTimeoutRef.current) clearTimeout(advanceTimeoutRef.current);
+    setCurrentQuestionIndex((index) => index + 1);
+    setTimeLeft(quizConfig?.mode === 'speed' ? 5 : Number(quizConfig?.timePerQuestion) || 15);
+    setSelectedOption(null);
+  }, [currentQuestionIndex, quizData, quizConfig, finishQuiz]);
 
-  // Timer countdown effect - only start when quiz is ready
   useEffect(() => {
-    // Clear any existing timer
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-    
-    // Don't start timer if loading, no quiz data, or practice mode
-    if (isLoading || !quizData || quizConfig?.mode === 'practice') return;
-    
+    if (lives <= 0 && quizConfig?.mode !== 'practice') void finishQuiz();
+  }, [lives, quizConfig, finishQuiz]);
+  // Reset the per-question locks only after the next question has rendered.
+  useEffect(() => {
+    answerLockedRef.current = false;
+    advanceLockedRef.current = false;
+    if (advanceTimeoutRef.current) clearTimeout(advanceTimeoutRef.current);
+  }, [currentQuestionIndex]);
+
+  // Keep one interval and advance only once when the timer expires.
+  useEffect(() => {
+    if (isLoading || !quizData || quizConfig?.mode === 'practice' || answerLockedRef.current || advanceLockedRef.current) return;
+    let remaining = quizConfig?.mode === 'speed' ? 5 : Number(quizConfig?.timePerQuestion) || 15;
+    setTimeLeft(remaining);
     timerRef.current = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          handleNextQuestion();
-          return quizConfig?.mode === 'speed' ? 5 : quizConfig?.timePerQuestion || 15;
-        }
-        return prev - 1;
-      });
+      if (answerLockedRef.current || advanceLockedRef.current) return;
+      remaining -= 1;
+      setTimeLeft(Math.max(remaining, 0));
+      if (remaining <= 0) {
+        answerLockedRef.current = true;
+        clearInterval(timerRef.current);
+        void handleNextQuestion();
+      }
     }, 1000);
 
     return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
+      if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [currentQuestionIndex, quizData, handleNextQuestion, quizConfig, isLoading]);
 
-  // Handle answer selection
+  // Score an answer once, including options whose id is 0.
   const handleAnswer = (option) => {
-    if (selectedOption) return;
+    if (answerLockedRef.current || advanceLockedRef.current || selectedOption !== null) return;
+    answerLockedRef.current = true;
+    if (timerRef.current) clearInterval(timerRef.current);
     setSelectedOption(option.id);
 
     const currentQuestion = quizData[currentQuestionIndex];
-    const correctOption = currentQuestion.options?.find((item) => item.is_correct);
-    answerRecordsRef.current[currentQuestionIndex] = {
-      questionId: `${quizConfig?.attemptId || 'quiz'}:${currentQuestionIndex}`,
-      topic: currentQuestion.topic || 'General Knowledge',
-      correct: Boolean(option.is_correct),
-      question: currentQuestion.description,
-      options: currentQuestion.options?.map((item) => item.description) || [],
-      correctAnswer: correctOption?.description || '',
-    };
-    let points = 3;
-    switch(currentQuestion.difficulty_level?.toLowerCase()) {
-      case 'hard': points = 5; break;
-      case 'medium': points = 4; break;
-      default: points = 3;
-    }
+    const difficulty = currentQuestion.difficulty_level?.toLowerCase();
+    const points = difficulty === 'hard' ? 5 : difficulty === 'medium' ? 4 : 3;
 
     if (option.is_correct) {
-      setScore(s => s + points);
-      setCorrectAnswersCount(c => c + 1);
+      setScore((value) => value + points);
+      setCorrectAnswersCount((value) => value + 1);
+      confetti({ particleCount: 120, spread: 75, origin: { y: 0.65 } });
       playCorrect();
-      confetti({ particleCount: 100, spread: 70 });
       toast.success('Correct Answer! 😄');
     } else {
-      setScore(s => s - 1);
-      if (quizConfig?.mode !== 'practice') {
-        setLives(l => l - 1);
-      }
+      setScore((value) => value - 1);
+      if (quizConfig?.mode !== 'practice') setLives((value) => value - 1);
       playWrong();
       toast.error('Wrong Answer! 😐');
     }
 
-    setTimeout(handleNextQuestion, 1500);
+    advanceTimeoutRef.current = setTimeout(() => { void handleNextQuestion(); }, 1200);
   };
-
   // Provide a hint
   const showHint = () => {
     if (hintsRemaining > 0) {
@@ -604,8 +384,6 @@ Generate ${amount} questions now:`;
         score,
         lives,
         hintsRemaining,
-        answerRecords: answerRecordsRef.current,
-        expiry: Date.now() + 3 * 60 * 1000,
         config: quizConfig
       }));
     }
@@ -643,112 +421,62 @@ Generate ${amount} questions now:`;
 
   const currentQuestion = quizData[currentQuestionIndex];
   const timeWarning = timeLeft <= 5;
+  const hintShining = timeLeft <= 5 && timeLeft > 0 && quizConfig?.mode !== 'practice' && hintsRemaining > 0 && selectedOption === null;
+
+  const selectedAnswer = currentQuestion.options.find((option, index) => (option.id ?? index) === selectedOption);
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <Toaster position="top-right" className="font-spaceGrotesk" />
-      
-      <div className="max-w-4xl mx-auto glass-panel rounded-2xl p-6 mb-8 font-poppins">
-        <div className="flex justify-between items-center mb-6 md:flex-row flex-col gap-4">
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="bg-red-100 lg:px-4 lg:py-2 p-2 rounded-lg text-sm">
-              ❤️ {lives}
-            </div>
-            {quizConfig?.mode !== 'practice' && (
-              <div className={`lg:px-4 lg:py-2 p-2 rounded-lg text-sm transition-colors ${
-                timeWarning ? 'bg-red-500 text-white animate-pulse' : 'bg-blue-100'
-              }`}>
-                ⏳ {timeLeft}s
-              </div>
-            )}
-            <button 
-              onClick={showHint}
-              className="bg-purple-100 lg:px-4 lg:py-2 p-2 rounded-lg hover:bg-purple-200 text-sm disabled:opacity-50"
-              disabled={hintsRemaining <= 0}
-            >
-              Hints: {hintsRemaining} 💡
-            </button>
-            {quizConfig?.mode && (
-              <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium">
-                {quizConfig.mode.charAt(0).toUpperCase() + quizConfig.mode.slice(1)} Mode
-              </span>
-            )}
-            {quizConfig?.isCommunity && (
-              <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                Community Quiz
-              </span>
-            )}
+    <main className="quiz-page min-h-screen px-4 pb-10 pt-6 md:px-8 md:pt-8">
+      <Toaster position="top-right" />
+      <section className="quiz-card glass-panel mx-auto mb-5 max-w-4xl rounded-3xl p-5 md:p-8">
+        <header className="mb-7 flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border-color)] pb-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="quiz-status-pill quiz-lives">Lives <strong>{lives}</strong></span>
+            {quizConfig?.mode !== 'practice' && <span className={`quiz-status-pill quiz-timer ${timeWarning ? 'quiz-timer-warning' : ''}`}>Time <strong>{timeLeft}s</strong></span>}
+            <button onClick={showHint} className={`quiz-status-pill quiz-hint transition-colors ${hintShining ? 'quiz-hint-urgent' : ''}`} disabled={hintsRemaining <= 0 || selectedOption !== null}>Hint <strong>{hintsRemaining}</strong></button>
+            {quizConfig?.mode && <span className="quiz-mode-badge">{quizConfig.mode} mode</span>}
+            {quizConfig?.isCommunity && <span className="quiz-community-badge">Community quiz</span>}
           </div>
-          
-          <div className="space-y-2 text-sm">
-            <div className="bg-green-600 text-white lg:px-4 text-center lg:py-2 p-1 rounded-lg font-bold font-poppins text-sm shadow-[0_0_10px_rgba(22,163,74,0.5)]">
-              Score: {score}
-            </div>
-            <div className="text-sm font-bold text-[var(--text-muted)]">
-              Question {currentQuestionIndex + 1}/{quizData.length}
-            </div>
+          <div className="flex items-center gap-3">
+            <span className="quiz-score-badge">Score <strong>{score}</strong></span>
+            <span className="text-sm font-semibold text-[var(--text-muted)]">{currentQuestionIndex + 1} <span aria-hidden="true">/</span> {quizData.length}</span>
           </div>
-        </div>
-
-        <motion.div 
-          key={currentQuestionIndex}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
-        >
-          <div className="flex gap-2 flex-wrap mb-4 font-poppins">
-            <span className="bg-blue-100 px-2 py-1 rounded text-sm">
-              Topic: {currentQuestion.topic}
-            </span>
-            <span className={`px-2 py-1 rounded text-sm ${
-              currentQuestion.difficulty_level === 'hard' ? 'bg-red-100 text-red-700' :
-              currentQuestion.difficulty_level === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-              'bg-green-100 text-green-700'
-            }`}>
-              {currentQuestion.difficulty_level?.charAt(0).toUpperCase() + currentQuestion.difficulty_level?.slice(1) || 'Medium'}
+        </header>
+        <motion.div key={currentQuestionIndex} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="quiz-topic-badge">{currentQuestion.topic || 'General Knowledge'}</span>
+            <span className={`quiz-difficulty-badge quiz-difficulty-${(currentQuestion.difficulty_level || 'medium').toLowerCase()}`}>
+              {(currentQuestion.difficulty_level || 'medium').charAt(0).toUpperCase() + (currentQuestion.difficulty_level || 'medium').slice(1)}
             </span>
           </div>
-
-          <h2 className="text-[17px] md:text-xl font-bold text-[var(--text-main)] font-spaceGrotesk animate__animated animate__bounceIn">
-            {currentQuestion.description}
-          </h2>
-          
-          <div className="grid gap-4 font-josefinSans text-sm md:text-[16px]">
-            {currentQuestion.options.map(option => (
-              <button
-                key={option.id}
-                onClick={() => handleAnswer(option)}
-                className={`p-4 rounded-xl text-left animate__animated animate__bounceIn transition-all font-medium border-2
-                  ${selectedOption === option.id 
-                    ? option.is_correct 
-                      ? 'bg-green-500/10 border-green-500 text-green-500 shadow-[0_0_15px_rgba(34,197,94,0.2)]' 
-                      : 'bg-red-500/10 border-red-500 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]'
-                    : 'bg-[var(--bg-base)] text-[var(--text-main)] hover:bg-[var(--bg-surface)] hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] border-[var(--border-color)]'}
-                  ${selectedOption && option.is_correct ? 'border-2 border-green-500' : ''}`}
-                disabled={selectedOption !== null}
-              >
-                {option.description}
-                {selectedOption === option.id && (
-                  <span className="ml-2">
-                    {option.is_correct ? '✅' : '❌'}
-                  </span>
-                )}
-              </button>
-            ))}
+          <h2 className="quiz-question-title text-xl font-bold leading-relaxed tracking-tight md:text-2xl">{currentQuestion.description}</h2>
+          <div className="grid gap-3 font-medium text-sm md:text-base">
+            {currentQuestion.options.map((option, index) => {
+              const optionId = option.id ?? index;
+              const isSelected = selectedOption === optionId;
+              const revealCorrect = selectedOption !== null && option.is_correct;
+              const optionState = isSelected ? (option.is_correct ? 'quiz-option-correct' : 'quiz-option-wrong') : revealCorrect ? 'quiz-option-correct' : '';
+              return (
+                <button key={`${currentQuestionIndex}-${optionId}`} type="button" onClick={() => handleAnswer({ ...option, id: optionId })} aria-pressed={isSelected} disabled={selectedOption !== null} className={`quiz-option flex min-h-14 w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${optionState}`}>
+                  <span className="quiz-option-letter">{String.fromCharCode(65 + index)}</span>
+                  <span className="min-w-0 flex-1">{option.description}</span>
+                  {isSelected && <span className="quiz-answer-mark" aria-label={option.is_correct ? 'Correct answer' : 'Your answer'}>{option.is_correct ? '✓' : '×'}</span>}
+                  {revealCorrect && !isSelected && <span className="quiz-answer-mark" aria-label="Correct answer">✓</span>}
+                </button>
+              );
+            })}
           </div>
+          {selectedOption !== null && <p className={`text-sm font-semibold ${selectedAnswer?.is_correct ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-300'}`} aria-live="polite">
+            {selectedAnswer?.is_correct ? 'Correct. Moving to the next question…' : 'That answer was incorrect. The correct answer is highlighted.'}
+          </p>}
         </motion.div>
-      </div>
-
-      {/* Progress bar */}
-      <div className="max-w-4xl mx-auto">
-        <div className="h-3 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-full overflow-hidden shadow-inner">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${((currentQuestionIndex + 1) / quizData.length) * 100}%` }}
-            className="h-full bg-[#00A63E] shadow-[0_0_15px_rgba(0,166,62,0.8)]"
-          />
+      </section>
+      <div className="mx-auto max-w-4xl" aria-label="Quiz progress">
+        <div className="quiz-progress-track h-2.5 overflow-hidden rounded-full">
+          <motion.div initial={{ width: 0 }} animate={{ width: `${((currentQuestionIndex + 1) / quizData.length) * 100}%` }} className="quiz-progress-fill h-full rounded-full" />
         </div>
+        <p className="mt-2 text-right text-xs font-semibold text-[var(--text-muted)]">Question {currentQuestionIndex + 1} of {quizData.length}</p>
       </div>
-    </div>
+    </main>
   );
 }

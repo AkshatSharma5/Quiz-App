@@ -1,6 +1,7 @@
 import { collection, doc, getDoc, getDocs, limit, query, runTransaction, setDoc, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { LOCAL_QUESTIONS } from '@/data/localLearning';
+import { requestGeminiText } from '@/lib/geminiClient';
 import { AdaptiveError, MCP_TOOLS, handleMcpRequest, scoreTopics, validateToolInput } from './adaptiveCore';
 
 const ATTEMPTS_KEY = 'quizup.adaptiveAttempts';
@@ -76,11 +77,26 @@ async function executeTool(userId, name, args) {
         options: answer.options.map((description, optionId) => ({ id: optionId, description, is_correct: description === answer.correctAnswer })),
       }));
     const matching = LOCAL_QUESTIONS.filter((question) => question.topic.toLowerCase() === args.topic.toLowerCase());
+    try {
+      const amount = Math.min(args.amount || 10, 10);
+      const mistakes = priorQuestions.slice(-3).map((answer) => `Question: ${answer.question}\nCorrect answer: ${answer.correctAnswer}`).join('\n\n');
+      const prompt = `Create ${amount} original multiple-choice questions for a learner practicing "${args.topic}". Use medium difficulty and avoid repeating these prior mistakes when supplied:\n${mistakes || 'No prior mistakes supplied.'}\nReturn only a JSON array. Every item must have description, topic, difficulty_level, and options. Each options array must contain exactly four objects with description and is_correct, with exactly one is_correct true. Keep questions and choices concise.`;
+      const generated = JSON.parse(await requestGeminiText(prompt, 'application/json'));
+      if (Array.isArray(generated) && generated.length === amount && generated.every((question) =>
+        typeof question.description === 'string' && Array.isArray(question.options) && question.options.length === 4 &&
+        question.options.filter((option) => option.is_correct === true).length === 1 &&
+        question.options.every((option) => typeof option.description === 'string' && typeof option.is_correct === 'boolean')
+      )) {
+        return { topic: args.topic, questions: generated.map((question, id) => ({ ...question, id, topic: args.topic, difficulty_level: question.difficulty_level || 'medium', options: question.options.map((option, optionId) => ({ ...option, id: optionId })) })), source: 'gemini' };
+      }
+    } catch (error) {
+      console.info('Gemini practice generation unavailable; using stored questions.', error.code || error.message);
+    }
     const pool = reviewQuestions.length ? reviewQuestions : matching;
     if (!pool.length) throw new AdaptiveError('NO_TOPIC_QUESTIONS', `No focused questions are available for ${args.topic} yet.`);
     const questions = Array.from({ length: Math.min(args.amount || 10, pool.length) }, (_, index) => ({ ...pool[index % pool.length], id: index }));
     if (!questions.length || questions.some((question) => !question.options?.some((option) => option.is_correct))) throw new AdaptiveError('INCONSISTENT_QUIZ_OUTPUT', 'Generated practice questions failed validation.');
-    return { topic: args.topic, questions, source: 'built-in-question-bank' };
+    return { topic: args.topic, questions, source: reviewQuestions.length ? 'previous-mistakes' : 'built-in-question-bank' };
   }
   if (name === 'record_answers') {
     const attempts = localRead(ATTEMPTS_KEY, []);
@@ -122,7 +138,7 @@ async function executeTool(userId, name, args) {
 
 /** Invoke one of the five declared MCP tools. */
 export async function callAdaptiveTool(user, name, args) {
-  return executeTool(user?.uid || null, name, args);
+  return executeTool(user?.isDemo ? null : user?.uid || null, name, args);
 }
 
 /** In-app JSON-RPC client for the MCP tool surface. */
@@ -147,7 +163,7 @@ export async function callAdaptiveMcp(user, request) {
       console.info('Remote MCP endpoint unavailable; using the local MCP tool adapter.');
     }
   }
-  return handleMcpRequest(request, { callTool: (name, args) => executeTool(user?.uid || null, name, args) });
+  return handleMcpRequest(request, { callTool: (name, args) => executeTool(user?.isDemo ? null : user?.uid || null, name, args) });
 }
 
 export async function invokeAdaptiveTool(user, name, args, id = Date.now()) {

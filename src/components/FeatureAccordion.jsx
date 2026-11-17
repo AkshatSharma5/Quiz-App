@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const FEATURES = [
@@ -41,23 +41,18 @@ const FEATURES = [
 
 export default function FeatureAccordion() {
   const [activeTab, setActiveTab] = useState(1);
-  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
-    if (isPaused) return;
     const interval = setInterval(() => {
       setActiveTab((prev) => (prev === FEATURES.length ? 1 : prev + 1));
     }, 4000);
     return () => clearInterval(interval);
-  }, [isPaused]);
+  }, []);
 
   return (
-    <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 items-stretch"
-         onMouseEnter={() => setIsPaused(true)}
-         onMouseLeave={() => setIsPaused(false)}
-    >
+    <div className="feature-accordion w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 items-stretch">
       {/* Left side: Compact Tabs */}
-      <div className="lg:w-1/3 flex flex-col gap-3">
+      <div className="feature-tabs lg:w-1/3 flex flex-col gap-3">
         {FEATURES.map((feature) => {
           const isActive = activeTab === feature.id;
           return (
@@ -85,7 +80,7 @@ export default function FeatureAccordion() {
               }`}>
                 {feature.icon}
               </div>
-              <h3 className={`relative z-10 text-base md:text-xl font-bold transition-colors duration-300 ${
+              <h3 className={`relative z-10 text-sm md:text-base font-bold leading-snug transition-colors duration-300 ${
                 isActive ? 'text-[#00A63E] dark:text-[#39FF14]' : 'text-[var(--text-main)]'
               }`}>
                 {feature.title}
@@ -96,7 +91,7 @@ export default function FeatureAccordion() {
       </div>
 
       {/* Right side: Large Horizontal Banner */}
-      <div className="lg:w-2/3 glass-panel rounded-3xl border-[rgba(57,255,20,0.3)] p-8 md:p-14 flex items-center relative overflow-hidden min-h-[400px] shadow-[0_0_40px_rgba(57,255,20,0.1)] group">
+      <div className="feature-showcase lg:w-2/3 glass-panel rounded-3xl border-[rgba(57,255,20,0.3)] p-6 md:p-8 flex items-center relative overflow-hidden shadow-[0_0_40px_rgba(57,255,20,0.1)] group">
         
         {/* Striking Background Animations */}
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 mix-blend-overlay"></div>
@@ -112,24 +107,24 @@ export default function FeatureAccordion() {
                 animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
                 exit={{ opacity: 0, x: -50, filter: 'blur(10px)' }}
                 transition={{ duration: 0.5, type: 'spring', bounce: 0.4 }}
-                className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8 w-full"
+                className="feature-showcase-content relative z-10 flex flex-col items-center gap-4 w-full"
               >
                 {/* Floating Icon Element */}
                 <motion.div 
                   animate={{ y: [0, -15, 0], rotate: [0, 5, -5, 0] }}
                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  className="w-32 h-32 md:w-40 md:h-40 shrink-0 rounded-[2rem] bg-gradient-to-br from-[#00A63E]/30 to-[#39FF14]/10 flex items-center justify-center text-6xl md:text-7xl shadow-[0_0_50px_rgba(57,255,20,0.4)] border border-[rgba(57,255,20,0.5)] backdrop-blur-md"
+                  className="w-20 h-20 md:w-24 md:h-24 shrink-0 rounded-[1.5rem] bg-gradient-to-br from-[#00A63E]/30 to-[#39FF14]/10 flex items-center justify-center text-4xl md:text-5xl shadow-[0_0_35px_rgba(57,255,20,0.3)] border border-[rgba(57,255,20,0.5)] backdrop-blur-md"
                 >
                   {feature.icon}
                 </motion.div>
                 
                 {/* Text Content */}
-                <div className="text-center md:text-left flex-1 mt-4 md:mt-0">
+                <div className="text-center w-full min-w-0">
                   <motion.h2 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
-                    className="text-4xl md:text-6xl font-black text-[var(--text-main)] mb-6 tracking-tight leading-tight"
+                    className="text-2xl md:text-3xl font-black text-[var(--text-main)] mb-3 tracking-tight leading-tight"
                   >
                     {feature.title}
                   </motion.h2>
@@ -137,7 +132,7 @@ export default function FeatureAccordion() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.3 }}
-                    className="text-lg md:text-2xl text-[var(--text-muted)] font-medium leading-relaxed"
+                    className="text-sm md:text-base text-[var(--text-muted)] font-medium leading-relaxed max-w-2xl"
                   >
                     {feature.desc}
                   </motion.p>

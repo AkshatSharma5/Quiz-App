@@ -1,12 +1,12 @@
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { motion } from "framer-motion";
-import confetti from "canvas-confetti";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { FaHome, FaRedo, FaChartLine, FaTrophy, FaShare } from "react-icons/fa";
+import PropTypes from 'prop-types';
 
 // Register Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -18,7 +18,7 @@ export default function Results({
   timeTaken,
 }) {
   const navigate = useNavigate();
-  const { user, userProfile } = useAuth();
+  const { user } = useAuth();
   const finalTime = useRef(timeTaken);
   const mins = Math.floor(finalTime.current / 60);
   const secs = finalTime.current % 60;
@@ -29,23 +29,12 @@ export default function Results({
 
   const incorrectAnswers = totalQuestions - correctAnswers;
 
-  useEffect(() => {
-    // Celebrate if good score
-    if (accuracy >= 70) {
-      confetti({
-        particleCount: 200,
-        spread: 100,
-        origin: { y: 0.6 }
-      });
-    }
-  }, [accuracy]);
-
   const data = {
     labels: ["Correct", "Incorrect"],
     datasets: [
       {
         data: [correctAnswers, incorrectAnswers],
-        backgroundColor: ["#10B981", "#EF4444"],
+        backgroundColor: ["#287b63", "#d5ddd9"],
         borderWidth: 0,
       },
     ],
@@ -61,18 +50,18 @@ export default function Results({
   };
 
   const getGrade = () => {
-    if (accuracy >= 90) return { grade: 'A+', color: 'text-green-600', message: 'Outstanding! 🌟' };
-    if (accuracy >= 80) return { grade: 'A', color: 'text-green-500', message: 'Excellent! 🎉' };
-    if (accuracy >= 70) return { grade: 'B', color: 'text-blue-600', message: 'Great job! 👏' };
-    if (accuracy >= 60) return { grade: 'C', color: 'text-yellow-600', message: 'Good effort! 💪' };
-    if (accuracy >= 50) return { grade: 'D', color: 'text-orange-600', message: 'Keep practicing! 📚' };
-    return { grade: 'F', color: 'text-red-600', message: 'Don\'t give up! 🔥' };
+    if (accuracy >= 90) return { grade: 'A+', color: 'text-[var(--accent)]', message: 'Outstanding result' };
+    if (accuracy >= 80) return { grade: 'A', color: 'text-[var(--accent)]', message: 'Excellent work' };
+    if (accuracy >= 70) return { grade: 'B', color: 'text-[var(--accent)]', message: 'Strong result' };
+    if (accuracy >= 60) return { grade: 'C', color: 'text-[var(--accent)]', message: 'Good progress' };
+    if (accuracy >= 50) return { grade: 'D', color: 'text-[var(--text-muted)]', message: 'Keep practicing' };
+    return { grade: 'F', color: 'text-[var(--text-muted)]', message: 'Review and try again' };
   };
 
   const gradeInfo = getGrade();
 
   const shareResults = () => {
-    const text = `🎯 I scored ${score} points on QuizUp!\n\n✅ ${correctAnswers}/${totalQuestions} correct (${accuracy}%)\n⏱️ Completed in ${mins}m ${secs}s\n\n🚀 Try it yourself!`;
+    const text = `I scored ${score} points on QuizUp.\n\n${correctAnswers} of ${totalQuestions} correct (${accuracy}%).\nCompleted in ${mins}m ${secs}s.`;
     
     if (navigator.share) {
       navigator.share({
@@ -95,10 +84,10 @@ export default function Results({
         {/* Header */}
         <div className="text-center mb-8">
           <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", delay: 0.2 }}
-            className={`text-8xl font-bold ${gradeInfo.color} mb-2`}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, delay: 0.1 }}
+            className={`text-7xl font-semibold tracking-tight ${gradeInfo.color} mb-2`}
           >
             {gradeInfo.grade}
           </motion.div>
@@ -118,20 +107,20 @@ export default function Results({
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.1 }}
-                className="flex justify-between items-center p-5 glass-panel border-l-4 border-blue-500 shadow-md"
+                className="flex justify-between items-center p-5 glass-panel border-l-4 border-[var(--accent)] shadow-sm"
               >
                 <span className="font-bold text-[var(--text-muted)] uppercase tracking-wider text-sm">Total Score</span>
-                <span className="text-2xl font-black text-blue-500">{score}</span>
+                <span className="text-2xl font-semibold text-[var(--accent)]">{score}</span>
               </motion.div>
 
               <motion.div
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                className="flex justify-between items-center p-5 glass-panel border-l-4 border-green-500 shadow-md"
+                className="flex justify-between items-center p-5 glass-panel border-l-4 border-[var(--accent)] shadow-sm"
               >
                 <span className="font-bold text-[var(--text-muted)] uppercase tracking-wider text-sm">Correct Answers</span>
-                <span className="text-2xl font-black text-green-500">
+                <span className="text-2xl font-semibold text-[var(--accent)]">
                   {correctAnswers}/{totalQuestions}
                 </span>
               </motion.div>
@@ -140,20 +129,20 @@ export default function Results({
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.3 }}
-                className="flex justify-between items-center p-5 glass-panel border-l-4 border-purple-500 shadow-md"
+                className="flex justify-between items-center p-5 glass-panel border-l-4 border-[var(--accent)] shadow-sm"
               >
                 <span className="font-bold text-[var(--text-muted)] uppercase tracking-wider text-sm">Accuracy</span>
-                <span className="text-2xl font-black text-purple-500">{accuracy}%</span>
+                <span className="text-2xl font-semibold text-[var(--accent)]">{accuracy}%</span>
               </motion.div>
 
               <motion.div
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.4 }}
-                className="flex justify-between items-center p-5 glass-panel border-l-4 border-orange-500 shadow-md"
+                className="flex justify-between items-center p-5 glass-panel border-l-4 border-[var(--accent)] shadow-sm"
               >
                 <span className="font-bold text-[var(--text-muted)] uppercase tracking-wider text-sm">Time Taken</span>
-                <span className="text-2xl font-black text-orange-500">
+                <span className="text-2xl font-semibold text-[var(--accent)]">
                   {mins}m {secs}s
                 </span>
               </motion.div>
@@ -179,10 +168,10 @@ export default function Results({
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="glass-panel border-t-4 border-[#00A63E] rounded-xl p-5 mb-8 text-center shadow-[0_0_15px_rgba(0,166,62,0.2)]"
+            className="glass-panel border-t-4 border-[#00A63E] rounded-2xl p-5 mb-8 text-center shadow-sm"
           >
             <p className="text-lg font-bold text-[var(--text-main)]">
-              🎉 You earned <span className="font-black text-[#00A63E] dark:text-[#39FF14] text-xl">+{score + (correctAnswers * 10)} XP</span>!
+              You earned <span className="font-black text-[#00A63E] dark:text-[#39FF14] text-xl">+{score + (correctAnswers * 10)} XP</span>.
             </p>
           </motion.div>
         )}
@@ -252,3 +241,10 @@ export default function Results({
     </div>
   );
 }
+
+Results.propTypes = {
+  score: PropTypes.number.isRequired,
+  totalQuestions: PropTypes.number.isRequired,
+  correctAnswers: PropTypes.number.isRequired,
+  timeTaken: PropTypes.number.isRequired,
+};

@@ -134,6 +134,8 @@ The platform leverages **Google Gemini AI** and **Firebase infrastructure** to d
    npm run dev
    ```
 
+   Add `GEMINI_API_KEY=your_key` to a local `.env` file to enable AI requests. The key is read by the server endpoint and is not included in the browser bundle. The app uses `gemini-3.5-flash-lite` for chatbot answers, generated quizzes, flashcards, explanations, and adaptive practice. Without a configured key or when Gemini is unavailable, the app uses its built-in learning content where available.
+
 ---
 
 ## Usage ▶️
@@ -169,7 +171,7 @@ Contributions are welcome!
 
 ## Adaptive Learning MCP
 
-The adaptive practice flow is available from the **Adaptive** navigation link. It inspects the learner's most recent attempts, ranks topics by accuracy, creates focused practice from the local question bank or previously missed questions, and records each answer. After a practice session, topic mastery and review dates are updated on the learner profile.
+The adaptive practice flow is available from the **Adaptive** navigation link. It inspects the learner's most recent attempts, ranks topics by accuracy, asks Gemini for focused questions based on the weak topic and recent mistakes, validates the generated choices, and falls back to previous mistakes or the local question bank when Gemini is unavailable. Submitted answers update topic mastery and review dates on the learner profile.
 
 Five validated MCP tools are available at `POST /api/mcp`:
 
@@ -177,11 +179,11 @@ Five validated MCP tools are available at `POST /api/mcp`:
 | --- | --- |
 | `retrieve_attempt_history` | Read up to 20 recent attempts and the current revision plan |
 | `identify_weak_topics` | Rank topics using answer accuracy and saved mastery |
-| `generate_targeted_quiz` | Produce up to 10 focused questions without requiring Gemini |
+| `generate_targeted_quiz` | Generate up to 10 focused questions with Gemini, then fall back to stored questions |
 | `record_answers` | Store per-question outcomes, including question details for future review |
 | `update_revision_plan` | Recalculate mastery and schedule review intervals |
 
-The endpoint uses stateless JSON-RPC over HTTP and supports `initialize`, `ping`, `tools/list`, and `tools/call`. Learner tool calls require a Firebase ID token; the endpoint verifies the token and accesses Firestore with that user's token, so Firestore security rules still apply. For Vercel, configure `FIREBASE_PROJECT_ID` and `FIREBASE_API_KEY` as server environment variables (the existing `VITE_` Firebase variables are also accepted). No Gemini key or paid AI service is needed for adaptive practice. Without Firebase, the in-app adapter keeps attempts and plans in this browser's local storage.
+The endpoint uses stateless JSON-RPC over HTTP and supports `initialize`, `ping`, `tools/list`, and `tools/call`. Learner tool calls require a Firebase ID token; the endpoint verifies the token and accesses Firestore with that user's token, so Firestore security rules still apply. For Vercel, configure `GEMINI_API_KEY`, `FIREBASE_PROJECT_ID`, and `FIREBASE_API_KEY` as server environment variables. No `VITE_GEMINI_API_KEY` is used. Without Firebase, the in-app adapter keeps attempts and plans in this browser's local storage.
 
 Tool schemas and bounded execution live in `src/lib/adaptiveCore.js`; the Firebase/local adapters are in `src/lib/adaptiveTools.js`. The workflow allows at most 6 tool calls, 4 logical stages, and 1 retry per tool. It records structured failures and rejects malformed arguments or quiz output. Topic history is retained for the most recent 20 attempts on the learner profile.
 

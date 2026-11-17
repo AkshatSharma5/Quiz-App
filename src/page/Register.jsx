@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Toaster, toast } from 'react-hot-toast';
 import { FaGoogle, FaEnvelope, FaLock, FaUser } from 'react-icons/fa';
@@ -30,7 +29,7 @@ export default function Register() {
     try {
       setLoading(true);
       await register(email, password, displayName);
-      toast.success('Account created successfully! 🎉');
+      toast.success('Account created successfully.');
       navigate('/');
     } catch (error) {
       console.error(error);
@@ -48,7 +47,7 @@ export default function Register() {
     try {
       setLoading(true);
       await loginWithGoogle();
-      toast.success('Welcome to QuizUp! 🚀');
+      toast.success('Welcome to QuizUp.');
       navigate('/');
     } catch (error) {
       console.error(error);

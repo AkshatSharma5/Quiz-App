@@ -1,26 +1,18 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '@/context/AuthContext';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { requestGeminiText } from '@/lib/geminiClient';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Toaster, toast } from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
 import { 
   FaBrain, FaLightbulb, FaArrowRight, FaArrowLeft, 
-  FaCheck, FaTimes, FaRedo, FaStar
+  FaCheck, FaTimes, FaRedo
 } from 'react-icons/fa';
 import { QUIZ_CATEGORIES } from '@/data/quizData';
 import { LOCAL_FLASHCARDS } from '@/data/localLearning';
 
-const genAI = import.meta.env.VITE_GEMINI_API_KEY ? new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY) : null;
-
 export default function StudyMode() {
-  const { user, userProfile } = useAuth();
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(9);
   const [flashcards, setFlashcards] = useState([]);
@@ -50,8 +42,6 @@ export default function StudyMode() {
       setKnownCards(new Set());
       setStudyComplete(false);
 
-      const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
-      
       const prompt = `Generate 10 educational flashcards for studying ${category?.name || 'General Knowledge'}.
       
       Return ONLY a JSON array with this exact format (no markdown, no code blocks):
@@ -66,8 +56,7 @@ export default function StudyMode() {
       Make the cards educational, interesting, and progressively harder (difficulty 1-3).
       Keep answers concise but informative.`;
 
-      const result = await model.generateContent(prompt);
-      const text = await result.response.text();
+      const text = await requestGeminiText(prompt, 'application/json');
       
       // Parse the JSON response
       const cleanText = text.replace(/```json\n?|\n?```/g, '').trim();
@@ -75,14 +64,14 @@ export default function StudyMode() {
       
       if (Array.isArray(cards) && cards.length > 0) {
         setFlashcards(cards);
-        toast.success('Flashcards generated! 📚');
+        toast.success('Flashcards ready.');
       } else {
         throw new Error('Invalid response format');
       }
     } catch (error) {
       console.error('Error generating flashcards:', error);
       setFlashcards(LOCAL_FLASHCARDS.map(card => ({ ...card })));
-      toast(`AI is unavailable. Loaded ${LOCAL_FLASHCARDS.length} built-in flashcards so you can keep studying.`, { icon: '📚' });
+      toast(`Ready-made flashcards loaded.`);
     } finally {
       setGenerating(false);
     }
@@ -95,7 +84,6 @@ export default function StudyMode() {
       setLoadingExplanation(true);
       setShowExplanation(true);
       
-      const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
       const card = flashcards[currentIndex];
       
       const prompt = `Explain this topic in more detail for a student:
@@ -105,8 +93,7 @@ export default function StudyMode() {
       
       Provide a helpful, educational explanation with examples if relevant. Keep it concise (2-3 paragraphs max).`;
 
-      const result = await model.generateContent(prompt);
-      const text = await result.response.text();
+      const text = await requestGeminiText(prompt);
       setExplanation(text);
     } catch (error) {
       console.error('Error getting explanation:', error);
@@ -171,10 +158,6 @@ export default function StudyMode() {
     setExplanation('');
   };
 
-  const getDifficultyStars = (difficulty) => {
-    return Array(difficulty || 1).fill('⭐').join('');
-  };
-
   return (
     <div className="min-h-screen p-4 md:p-8">
       <Toaster position="top-center" />
@@ -185,8 +168,8 @@ export default function StudyMode() {
         className="max-w-4xl mx-auto"
       >
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-transparent bg-clip-text mb-2">
-            🧠 Study Mode
+          <h1 className="text-4xl font-semibold tracking-tight text-[var(--text-main)] mb-2">
+            Study mode
           </h1>
           <p className="text-[var(--text-muted)] font-medium">AI-powered flashcards for effective learning</p>
         </div>
@@ -211,7 +194,7 @@ export default function StudyMode() {
                       : 'bg-[var(--bg-base)] border-[var(--border-color)] text-[var(--text-main)] hover:bg-[var(--bg-surface)] hover:shadow-[0_0_10px_rgba(255,255,255,0.1)]'
                   }`}
                 >
-                  <span className="text-2xl block mb-1">{category.icon}</span>
+                  <span className="mb-1 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent-soft)] text-xs font-bold text-[var(--accent)]">{category.name.slice(0, 2).toUpperCase()}</span>
                   <span className="text-sm">{category.name}</span>
                 </button>
               ))}
@@ -238,10 +221,10 @@ export default function StudyMode() {
             animate={{ opacity: 1, scale: 1 }}
             className="glass-panel rounded-2xl p-8 text-center"
           >
-            <div className="text-6xl mb-4">🎉</div>
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--accent-soft)] text-2xl text-[var(--accent)]"><FaCheck aria-hidden="true" /></div>
             <h2 className="text-3xl font-black text-[var(--text-main)] mb-2">Study Complete!</h2>
             <p className="text-[var(--text-muted)] font-medium mb-6">
-              You've learned all {flashcards.length} flashcards!
+              You have learned all {flashcards.length} flashcards.
             </p>
             <div className="flex justify-center gap-4">
               <Button onClick={resetStudy} className="btn-secondary">
@@ -293,7 +276,7 @@ export default function StudyMode() {
                     Card {currentIndex + 1}/{flashcards.length}
                   </div>
                   <div className="absolute top-4 right-4 text-sm">
-                    {getDifficultyStars(flashcards[currentIndex]?.difficulty)}
+                    <span className="rounded-full border border-[var(--border-color)] px-2.5 py-1 text-xs font-medium text-[var(--text-muted)]">Level {flashcards[currentIndex]?.difficulty || 1}</span>
                   </div>
                   
                   <div className="text-center">

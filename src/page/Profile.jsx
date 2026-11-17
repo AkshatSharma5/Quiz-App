@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Toaster, toast } from 'react-hot-toast';
 import { 
-  FaUser, FaTrophy, FaFire, FaChartLine, FaStar, 
+  FaTrophy, FaFire, FaChartLine, FaStar,
   FaSignOutAlt, FaEdit, FaGamepad, FaCheck, FaTimes
 } from 'react-icons/fa';
 import { ACHIEVEMENTS } from '@/data/quizData';
@@ -27,7 +27,7 @@ export default function Profile() {
       await logout();
       toast.success('Logged out successfully!');
       navigate('/');
-    } catch (error) {
+    } catch {
       toast.error('Failed to logout');
     }
   };
@@ -38,7 +38,7 @@ export default function Profile() {
         await updateUserProfile(user.uid, { displayName: newDisplayName });
         toast.success('Profile updated!');
         setIsEditing(false);
-      } catch (error) {
+      } catch {
         toast.error('Failed to update profile');
       }
     } else {
@@ -215,19 +215,19 @@ export default function Profile() {
             onClick={() => navigate('/quiz-setup')}
             className="btn-primary"
           >
-            🎮 Start Quiz
+            Start quiz
           </Button>
           <Button
             onClick={() => navigate('/leaderboard')}
             className="btn-secondary"
           >
-            🏆 Leaderboard
+            Leaderboard
           </Button>
           <Button
             onClick={() => navigate('/analytics')}
             className="btn-secondary"
           >
-            📊 Analytics
+            Analytics
           </Button>
         </div>
       </motion.div>

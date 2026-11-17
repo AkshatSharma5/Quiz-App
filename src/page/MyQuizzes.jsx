@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
-import { collection, query, where, orderBy, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Toaster, toast } from 'react-hot-toast';
-import { FaPlus, FaEdit, FaTrash, FaPlay, FaStar, FaUsers } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaPlay, FaStar, FaUsers } from 'react-icons/fa';
 import { QUIZ_CATEGORIES } from '@/data/quizData';
+import { deleteDemoCommunityQuiz, getDemoCommunityQuizzes } from '@/lib/demoMode';
 
 export default function MyQuizzes() {
   const { user } = useAuth();
@@ -25,6 +26,11 @@ export default function MyQuizzes() {
   }, [user]);
 
   const fetchMyQuizzes = async () => {
+    if (user?.isDemo) {
+      setQuizzes(getDemoCommunityQuizzes());
+      setLoading(false);
+      return;
+    }
     try {
       const quizzesRef = collection(db, 'communityQuizzes');
       const q = query(
@@ -70,6 +76,12 @@ export default function MyQuizzes() {
     if (!window.confirm('Are you sure you want to delete this quiz?')) return;
     
     try {
+      if (user?.isDemo) {
+        deleteDemoCommunityQuiz(quizId);
+        setQuizzes((prev) => prev.filter((quiz) => quiz.id !== quizId));
+        toast.success('Quiz deleted');
+        return;
+      }
       await deleteDoc(doc(db, 'communityQuizzes', quizId));
       setQuizzes(prev => prev.filter(q => q.id !== quizId));
       toast.success('Quiz deleted');
@@ -81,7 +93,7 @@ export default function MyQuizzes() {
 
   const getCategoryIcon = (categoryId) => {
     const cat = QUIZ_CATEGORIES.find(c => c.id === categoryId);
-    return cat?.icon || '📚';
+    return cat?.name?.slice(0, 2).toUpperCase() || 'QZ';
   };
 
   const getDifficultyColor = (difficulty) => {
@@ -152,7 +164,7 @@ export default function MyQuizzes() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-2xl">{getCategoryIcon(quiz.category)}</span>
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-xs font-bold text-[var(--accent)]">{getCategoryIcon(quiz.category)}</span>
                       <h3 className="text-xl font-bold text-[var(--text-main)]">{quiz.title}</h3>
                     </div>
                     <p className="text-[var(--text-muted)] text-sm mb-3">{quiz.description}</p>

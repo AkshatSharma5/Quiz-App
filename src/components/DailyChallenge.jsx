@@ -1,131 +1,104 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { FaCheckCircle, FaClock } from 'react-icons/fa';
 import { useAuth } from '@/context/AuthContext';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { isDemoDailyChallengeComplete } from '@/lib/demoMode';
 import { Button } from '@/components/ui/button';
-import { FaStar, FaLock, FaClock } from 'react-icons/fa';
+import PropTypes from 'prop-types';
 
-export default function DailyChallenge() {
+export default function DailyChallenge({ compact = false }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [challengeCompleted, setChallengeCompleted] = useState(false);
   const [timeUntilReset, setTimeUntilReset] = useState('');
   const [loading, setLoading] = useState(true);
 
+  const checkDailyChallenge = useCallback(async () => {
+    if (!user) return;
+    try {
+      const today = new Date().toDateString();
+      const challengeRef = doc(db, 'dailyChallenges', user.uid + '_' + today);
+      const snapshot = await getDoc(challengeRef);
+      setChallengeCompleted(snapshot.exists());
+    } catch (error) {
+      console.error('Daily challenge status could not be loaded.', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
   useEffect(() => {
-    if (user) {
+    if (user?.isDemo) {
+      setChallengeCompleted(isDemoDailyChallengeComplete());
+      setLoading(false);
+    } else if (user) {
       checkDailyChallenge();
     } else {
       setLoading(false);
     }
-    
-    // Update countdown every minute
-    const interval = setInterval(updateCountdown, 60000);
+
+    const updateCountdown = () => {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      const remaining = tomorrow.getTime() - Date.now();
+      const hours = Math.floor(remaining / 3600000);
+      const minutes = Math.floor((remaining % 3600000) / 60000);
+      setTimeUntilReset(hours + 'h ' + minutes + 'm');
+    };
     updateCountdown();
+    const interval = setInterval(updateCountdown, 60000);
     return () => clearInterval(interval);
-  }, [user]);
-
-  const updateCountdown = () => {
-    const now = new Date();
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
-    
-    const diff = tomorrow - now;
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
-    setTimeUntilReset(`${hours}h ${minutes}m`);
-  };
-
-  const checkDailyChallenge = async () => {
-    try {
-      const today = new Date().toDateString();
-      const challengeRef = doc(db, 'dailyChallenges', `${user.uid}_${today}`);
-      const docSnap = await getDoc(challengeRef);
-      
-      if (docSnap.exists()) {
-        setChallengeCompleted(true);
-      }
-    } catch (error) {
-      console.error('Error checking daily challenge:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [user, checkDailyChallenge]);
 
   const startDailyChallenge = () => {
     sessionStorage.setItem('quizConfig', JSON.stringify({
-      category: 0, // Random category
+      category: 0,
       difficulty: 'medium',
       amount: 10,
       mode: 'classic',
       timePerQuestion: 15,
-      isDaily: true
+      isDaily: true,
     }));
     navigate('/quiz');
   };
 
   if (loading) {
-    return (
-      <div className="glass-panel rounded-2xl p-6 animate-pulse">
-        <div className="h-6 bg-[var(--border-color)] rounded w-1/2 mb-3"></div>
-        <div className="h-4 bg-[var(--border-color)] rounded w-3/4"></div>
-      </div>
-    );
+    return <div className="glass-panel animate-pulse h-full rounded-3xl p-5" aria-label="Loading daily challenge"><div className="h-5 w-2/5 rounded bg-[var(--border-color)]" /><div className="mt-4 h-4 w-3/4 rounded bg-[var(--border-color)]" /></div>;
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.02 }}
-      className="glass-panel rounded-2xl p-8 shadow-xl relative overflow-hidden"
-    >
-      <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <FaStar className="text-[#00A63E] dark:text-[#39FF14] text-2xl" />
-            <h3 className="text-2xl font-bold tracking-tight text-[var(--text-main)]">Daily Challenge</h3>
-          </div>
-
-          <p className="text-[var(--text-muted)] font-medium mb-4 text-base">
-            Complete the daily challenge for bonus XP and streak points!
-          </p>
-
-          {challengeCompleted ? (
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg px-4 py-2 font-medium">
-                <FaLock className="text-[var(--text-muted)]" />
-                <span>Completed today! 🎉</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-medium">
-                <FaClock />
-                <span>New challenge in: {timeUntilReset}</span>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-4 text-sm font-bold">
-              <span className="bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)] px-4 py-1.5 rounded-full">+50 XP</span>
-              <span className="bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)] px-4 py-1.5 rounded-full">+🔥 Streak</span>
-              <span className="bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)] px-4 py-1.5 rounded-full">10 Questions</span>
-            </div>
-          )}
+    <section className={`glass-panel h-full rounded-3xl ${compact ? 'p-5' : 'p-5 md:p-6'}`} aria-label="Daily challenge">
+      <div className={`flex h-full flex-col ${compact ? 'gap-3' : 'gap-5'}`}>
+        <div>
+          <p className="eyebrow">Daily set</p>
+          <h3 className="mt-2 text-xl font-semibold tracking-tight text-[var(--text-main)]">Daily challenge</h3>
+          <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">{compact ? 'A quick knowledge check.' : 'Ten questions for a focused knowledge check.'}</p>
         </div>
-
-        {!challengeCompleted && (
-          <div className="w-full md:w-auto mt-4 md:mt-0">
-            <Button
-              onClick={user ? startDailyChallenge : () => navigate('/login')}
-              className="w-full md:w-auto btn-primary px-8 py-4 text-base h-auto"
-            >
-              {user ? 'Start Challenge' : 'Sign in to Play'}
-            </Button>
+        {compact ? (
+          <p className="mt-auto text-xs font-semibold text-[var(--text-muted)]">10 questions <span aria-hidden="true">·</span> 50 XP</p>
+        ) : (
+          <div className="flex flex-wrap gap-2 text-xs font-semibold">
+            <span className="rounded-full border border-[var(--border-color)] bg-[var(--bg-base)] px-3 py-2 text-[var(--text-main)]">50 XP</span>
+            <span className="rounded-full border border-[var(--border-color)] bg-[var(--bg-base)] px-3 py-2 text-[var(--text-main)]">Streak progress</span>
+            <span className="rounded-full border border-[var(--border-color)] bg-[var(--bg-base)] px-3 py-2 text-[var(--text-main)]">10 questions</span>
           </div>
         )}
+        {challengeCompleted ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--accent)]/30 bg-[var(--accent-soft)] p-4">
+            <span className="flex items-center gap-2 text-sm font-semibold text-[var(--accent)]"><FaCheckCircle aria-hidden="true" />Completed today</span>
+            <span className="flex items-center gap-2 text-xs text-[var(--text-muted)]"><FaClock aria-hidden="true" />Resets in {timeUntilReset}</span>
+          </div>
+        ) : (
+          <Button onClick={user ? startDailyChallenge : () => navigate('/login')} className="btn-primary mt-auto min-h-10 w-full justify-center rounded-xl px-2 text-sm">
+            {user ? 'Start challenge' : 'Sign in to play'}
+          </Button>
+        )}
       </div>
-    </motion.div>
+    </section>
   );
 }
+
+DailyChallenge.propTypes = { compact: PropTypes.bool };
