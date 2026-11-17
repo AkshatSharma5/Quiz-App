@@ -11,6 +11,8 @@ import { collection, addDoc, serverTimestamp, doc, setDoc, updateDoc, increment 
 import { db } from '@/lib/firebase';
 import Results from './Results';
 import { QUIZ_CATEGORIES } from '@/data/quizData';
+import { getLocalQuestions } from '@/data/localLearning';
+import { invokeAdaptiveTool } from '@/lib/adaptiveTools';
 
 // Helper function to decode HTML entities from OpenTDB strings
 function decodeHTML(html) {
@@ -42,6 +44,8 @@ export default function Quiz() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingMessage, setLoadingMessage] = useState('Loading quiz...');
   const timerRef = useRef(null);
+  const answerRecordsRef = useRef({});
+  const completionRef = useRef(false);
   const hasLoadedQuiz = useRef(false); // Prevent double-loading in Strict Mode
   const [playCorrect] = useSound('../assets/success.mp3');
   const [playWrong] = useSound('../assets/error.mp3');
@@ -125,14 +129,29 @@ export default function Quiz() {
           setTimeLeft(config.timePerQuestion || 15);
         }
         
-        fetchQuizData(config);
+        const adaptivePractice = sessionStorage.getItem('adaptivePractice');
+        if (config.isAdaptive && adaptivePractice) {
+          try {
+            const practice = JSON.parse(adaptivePractice);
+            if (!Array.isArray(practice.questions) || !practice.questions.length) throw new Error('Invalid adaptive practice.');
+            setQuizData(practice.questions);
+            setQuizConfig({ ...config, adaptiveTopic: practice.topic || config.adaptiveTopic, attemptId: practice.attemptId || config.attemptId });
+            setIsLoading(false);
+            sessionStorage.removeItem('adaptivePractice');
+          } catch (error) {
+            toast.error('Could not load focused practice. Please try again.');
+            navigate('/adaptive');
+          }
+        } else {
+          fetchQuizData(config);
+        }
         sessionStorage.removeItem('quizConfig');
       } else {
         // Load saved progress or fetch new quiz
         const savedProgress = localStorage.getItem('quizProgress');
         if (savedProgress) {
           try {
-            const { quizData: savedQuizData, currentQuestionIndex: savedIndex, score: savedScore, lives: savedLives, hintsRemaining: savedHints, expiry, config } = JSON.parse(savedProgress);
+            const { quizData: savedQuizData, currentQuestionIndex: savedIndex, score: savedScore, lives: savedLives, hintsRemaining: savedHints, answerRecords = {}, expiry, config } = JSON.parse(savedProgress);
             const now = Date.now();
             if (now > expiry) {
               localStorage.removeItem('quizProgress');
@@ -144,6 +163,7 @@ export default function Quiz() {
               setScore(savedScore);
               setLives(savedLives);
               setHintsRemaining(savedHints);
+              answerRecordsRef.current = answerRecords;
               setIsLoading(false);
             }
           } catch (error) {
@@ -244,27 +264,30 @@ Generate ${amount} questions now:`;
         score: 0,
         lives: config.mode === 'survival' ? 1 : 5,
         hintsRemaining: 3,
+        answerRecords: answerRecordsRef.current,
         expiry: Date.now() + 3 * 60 * 1000,
         config: config
       }));
     } catch (err) {
-      console.error('Gemini API error:', err);
-      
-      let errorMessage = 'Failed to generate quiz.';
-      if (err.message?.includes('429')) {
-        errorMessage = 'API rate limited. Please wait a moment and try again.';
-      } else if (err.message?.includes('404')) {
-        errorMessage = 'AI model not found. Please check your API key.';
-      } else if (err.message?.includes('Invalid question format')) {
-        errorMessage = err.message + ' Retrying...';
-        // Retry once on format error
-        return fetchQuizData(config);
-      } else if (err.message) {
-        errorMessage = `Error: ${err.message}`;
-      }
-      
-      toast.error(errorMessage);
-      navigate('/quiz-setup');
+      console.warn('AI quiz generation unavailable; using the included offline question bank.', err);
+      const localQuestions = getLocalQuestions(config.category, config.amount).map((question, id) => ({
+        ...question,
+        id,
+        difficulty_level: config.difficulty || question.difficulty_level,
+      }));
+      setQuizData(localQuestions);
+      setIsLoading(false);
+      toast('Using the built-in question bank. AI generation is optional.', { icon: '📚' });
+      localStorage.setItem('quizProgress', JSON.stringify({
+        quizData: localQuestions,
+        currentQuestionIndex: 0,
+        score: 0,
+        lives: config.mode === 'survival' ? 1 : 5,
+        hintsRemaining: config.mode === 'practice' ? 999 : 3,
+        answerRecords: answerRecordsRef.current,
+        expiry: Date.now() + 3 * 60 * 1000,
+        config,
+      }));
     }
   };
 
@@ -378,17 +401,32 @@ Generate ${amount} questions now:`;
 
   // Handle transition to next question or completion of quiz
   const handleNextQuestion = useCallback(async () => {
-    if (!quizData || quizData.length === 0) return;
+    if (!quizData || quizData.length === 0 || completionRef.current) return;
+
+    const question = quizData[currentQuestionIndex];
+    if (!answerRecordsRef.current[currentQuestionIndex] && question) {
+      const correctOption = question.options?.find((option) => option.is_correct);
+      answerRecordsRef.current[currentQuestionIndex] = {
+        questionId: `${quizConfig?.attemptId || 'quiz'}:${currentQuestionIndex}`,
+        topic: question.topic || 'General Knowledge',
+        correct: false,
+        question: question.description,
+        options: question.options?.map((option) => option.description) || [],
+        correctAnswer: correctOption?.description || '',
+      };
+    }
     
     if (currentQuestionIndex < quizData.length - 1) {
       setCurrentQuestionIndex(i => i + 1);
       setTimeLeft(quizConfig?.mode === 'speed' ? 5 : quizConfig?.timePerQuestion || 15);
       setSelectedOption(null);
     } else {
+      completionRef.current = true;
       const finalTime = Math.floor((Date.now() - startTime) / 1000);
       setTimeTaken(finalTime);
       setQuizCompleted(true);
       localStorage.removeItem('quizProgress');
+      const attemptId = quizConfig?.attemptId || (globalThis.crypto?.randomUUID?.() || `quiz-${Date.now()}`);
 
       // Save quiz result to Firebase if user is logged in
       if (user) {
@@ -421,6 +459,8 @@ Generate ${amount} questions now:`;
             difficulty: quizConfig?.difficulty || 'medium',
             mode: quizConfig?.mode || 'classic',
             isCommunity: quizConfig?.isCommunity || false,
+            adaptiveAttemptId: attemptId,
+            questionAnswers: Object.values(answerRecordsRef.current),
             completedAt: serverTimestamp()
           });
 
@@ -444,6 +484,26 @@ Generate ${amount} questions now:`;
         } catch (error) {
           console.error('Error saving quiz result:', error);
         }
+      }
+
+      try {
+        const answers = Object.values(answerRecordsRef.current);
+        await invokeAdaptiveTool(user, 'record_answers', { attemptId, answers });
+        const updated = await invokeAdaptiveTool(user, 'update_revision_plan', { answers });
+        if (quizConfig?.isAdaptive) {
+          const savedFlow = JSON.parse(localStorage.getItem('quizup.adaptiveWorkflow') || '{}');
+          localStorage.setItem('quizup.adaptiveWorkflow', JSON.stringify({ ...savedFlow, attemptId, topic: quizConfig.adaptiveTopic, status: 'complete', completedAt: Date.now(), toolCalls: (savedFlow.toolCalls || 3) + 2, steps: [...(savedFlow.steps || []), 'update_mastery_and_revision'], revisionTopics: updated.revisionPlan?.length || 0 }));
+        }
+        if (quizConfig?.isAdaptive && updated.revisionPlan?.length) toast.success('Topic mastery and revision plan updated.');
+      } catch (error) {
+        console.error('Adaptive learning update failed:', error);
+        if (quizConfig?.isAdaptive) {
+          try {
+            const savedFlow = JSON.parse(localStorage.getItem('quizup.adaptiveWorkflow') || '{}');
+            localStorage.setItem('quizup.adaptiveWorkflow', JSON.stringify({ ...savedFlow, status: 'failed', error: { code: error.code || 'ADAPTIVE_UPDATE_FAILED', message: error.message } }));
+          } catch { /* A learning sync failure must not block viewing results. */ }
+        }
+        toast.error(`Could not update adaptive progress: ${error.message || 'unknown error'}`);
       }
     }
   }, [currentQuestionIndex, quizData, startTime, user, score, correctAnswersCount, updateQuizStats, quizConfig]);
@@ -490,6 +550,15 @@ Generate ${amount} questions now:`;
     setSelectedOption(option.id);
 
     const currentQuestion = quizData[currentQuestionIndex];
+    const correctOption = currentQuestion.options?.find((item) => item.is_correct);
+    answerRecordsRef.current[currentQuestionIndex] = {
+      questionId: `${quizConfig?.attemptId || 'quiz'}:${currentQuestionIndex}`,
+      topic: currentQuestion.topic || 'General Knowledge',
+      correct: Boolean(option.is_correct),
+      question: currentQuestion.description,
+      options: currentQuestion.options?.map((item) => item.description) || [],
+      correctAnswer: correctOption?.description || '',
+    };
     let points = 3;
     switch(currentQuestion.difficulty_level?.toLowerCase()) {
       case 'hard': points = 5; break;
@@ -535,6 +604,7 @@ Generate ${amount} questions now:`;
         score,
         lives,
         hintsRemaining,
+        answerRecords: answerRecordsRef.current,
         expiry: Date.now() + 3 * 60 * 1000,
         config: quizConfig
       }));

@@ -15,6 +15,7 @@ import CreateQuiz from "./page/CreateQuiz";
 import MyQuizzes from "./page/MyQuizzes";
 import BrowseQuizzes from "./page/BrowseQuizzes";
 import StudyMode from "./page/StudyMode";
+import AdaptivePractice from "./page/AdaptivePractice";
 import NetworkBackground from "./components/NetworkBackground";
 
 function App() {
@@ -43,6 +44,7 @@ function App() {
               <Route path="/my-quizzes" element={<MyQuizzes />} />
               <Route path="/browse-quizzes" element={<BrowseQuizzes />} />
               <Route path="/study" element={<StudyMode />} />
+              <Route path="/adaptive" element={<AdaptivePractice />} />
             </Routes>
           </div>
         </BrowserRouter>

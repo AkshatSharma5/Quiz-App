@@ -51,6 +51,7 @@ export default function Navbar() {
     { name: 'Play', path: '/quiz-setup' },
     { name: 'Community', path: '/browse-quizzes', icon: <FaGlobe /> },
     { name: 'Study', path: '/study', icon: <FaBook /> },
+    { name: 'Adaptive', path: '/adaptive', icon: <FaBrain /> },
     { name: 'Leaderboard', path: '/leaderboard', icon: <FaTrophy className="text-yellow-500" /> }
   ];
 

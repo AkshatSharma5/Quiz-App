@@ -23,11 +23,12 @@ import { useAuth } from "@/context/AuthContext";
 import DailyChallenge from "@/components/DailyChallenge";
 import StreakTracker from "@/components/StreakTracker";
 import FeatureAccordion from "@/components/FeatureAccordion";
+import { getLocalTutorReply } from "@/data/localLearning";
 import chatbot from "../assets/chatbot.gif";
 import study from "../assets/study.gif";
 import { FaPlay, FaBook, FaUsers, FaTrophy, FaPlus } from "react-icons/fa";
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
+const genAI = import.meta.env.VITE_GEMINI_API_KEY ? new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY) : null;
 
 export default function Home() {
   const navigate = useNavigate();
@@ -99,20 +100,9 @@ export default function Home() {
       toast.success("Response received!");
     } catch (error) {
       console.error("Gemini API Error:", error);
-      let errorMessage = "Failed to get response.";
-      
-      if (error.message?.includes("429")) {
-        errorMessage = "Error 429: Too many requests. Please try again later.";
-      } else if (error.message?.includes("500")) {
-        errorMessage = "Error 500: Internal server error. Please try again later.";
-      } else if (error.message?.includes("404")) {
-        errorMessage = `Error 404: Model not found. (${error.message})`;
-      } else if (error.message) {
-        errorMessage = `API Error: ${error.message}`;
-      }
-      
-      setMessages((prev) => [...prev, { role: "bot", content: `❌ ${errorMessage}` }]);
-      toast.error(errorMessage);
+      setMessages((prev) => [...prev, { role: "bot", content: getLocalTutorReply(input) }]);
+      toast("AI is unavailable; showing built-in study guidance instead.");
+
     } finally {
       setLoading(false);
     }

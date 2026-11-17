@@ -167,4 +167,24 @@ Contributions are welcome!
 3. Commit your changes
 4. Submit a pull request
 
+## Adaptive Learning MCP
+
+The adaptive practice flow is available from the **Adaptive** navigation link. It inspects the learner's most recent attempts, ranks topics by accuracy, creates focused practice from the local question bank or previously missed questions, and records each answer. After a practice session, topic mastery and review dates are updated on the learner profile.
+
+Five validated MCP tools are available at `POST /api/mcp`:
+
+| Tool | Operation |
+| --- | --- |
+| `retrieve_attempt_history` | Read up to 20 recent attempts and the current revision plan |
+| `identify_weak_topics` | Rank topics using answer accuracy and saved mastery |
+| `generate_targeted_quiz` | Produce up to 10 focused questions without requiring Gemini |
+| `record_answers` | Store per-question outcomes, including question details for future review |
+| `update_revision_plan` | Recalculate mastery and schedule review intervals |
+
+The endpoint uses stateless JSON-RPC over HTTP and supports `initialize`, `ping`, `tools/list`, and `tools/call`. Learner tool calls require a Firebase ID token; the endpoint verifies the token and accesses Firestore with that user's token, so Firestore security rules still apply. For Vercel, configure `FIREBASE_PROJECT_ID` and `FIREBASE_API_KEY` as server environment variables (the existing `VITE_` Firebase variables are also accepted). No Gemini key or paid AI service is needed for adaptive practice. Without Firebase, the in-app adapter keeps attempts and plans in this browser's local storage.
+
+Tool schemas and bounded execution live in `src/lib/adaptiveCore.js`; the Firebase/local adapters are in `src/lib/adaptiveTools.js`. The workflow allows at most 6 tool calls, 4 logical stages, and 1 retry per tool. It records structured failures and rejects malformed arguments or quiz output. Topic history is retained for the most recent 20 attempts on the learner profile.
+
+Run `npm test` for the six failure scenarios and MCP contract checks. Run `npm run evaluate:adaptive` for a deterministic synthetic comparison with a fixed-topic baseline; the harness reports topic relevance, tool-call success, and workflow completion. This small synthetic set is a development check, not a production learning-outcomes study.
+
 ---

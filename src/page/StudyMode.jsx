@@ -13,8 +13,9 @@ import {
   FaCheck, FaTimes, FaRedo, FaStar
 } from 'react-icons/fa';
 import { QUIZ_CATEGORIES } from '@/data/quizData';
+import { LOCAL_FLASHCARDS } from '@/data/localLearning';
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
+const genAI = import.meta.env.VITE_GEMINI_API_KEY ? new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY) : null;
 
 export default function StudyMode() {
   const { user, userProfile } = useAuth();
@@ -80,19 +81,8 @@ export default function StudyMode() {
       }
     } catch (error) {
       console.error('Error generating flashcards:', error);
-      let errorMessage = 'Failed to generate flashcards.';
-      
-      if (error.message?.includes("429")) {
-        errorMessage = "Error 429: Too many requests. Please try again later.";
-      } else if (error.message?.includes("500")) {
-        errorMessage = "Error 500: Internal server error. Please try again later.";
-      } else if (error.message?.includes("404")) {
-        errorMessage = `Error 404: Model not found. (${error.message})`;
-      } else if (error.message) {
-        errorMessage = `API Error: ${error.message}`;
-      }
-      
-      toast.error(errorMessage);
+      setFlashcards(LOCAL_FLASHCARDS.map(card => ({ ...card })));
+      toast(`AI is unavailable. Loaded ${LOCAL_FLASHCARDS.length} built-in flashcards so you can keep studying.`, { icon: '📚' });
     } finally {
       setGenerating(false);
     }
@@ -120,8 +110,10 @@ export default function StudyMode() {
       setExplanation(text);
     } catch (error) {
       console.error('Error getting explanation:', error);
-      toast.error('Failed to get explanation');
-      setShowExplanation(false);
+      const card = flashcards[currentIndex];
+      setExplanation(`**Key idea:** ${card.back}\n\nTry to explain this in your own words, then make up one example. If you cannot recall it later, mark the card “Still Learning” and revisit it.`);
+      setShowExplanation(true);
+      toast('Showing a built-in explanation prompt because AI is unavailable.');
     } finally {
       setLoadingExplanation(false);
     }
